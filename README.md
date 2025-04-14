@@ -81,6 +81,7 @@ Here `img` represents a numpy array of shape  `(t, y, x)`.
 
 #### Intensity
 Intensity is calculated as:<br>
+
 $$\langle k \rangle = \frac{\sum_i k_i}{K}$$
 
 In python:
@@ -89,6 +90,7 @@ average_intensity = np.mean(img, axis=0)
 ```
 #### Variance
 Variance is calculated as:<br>
+
 $$\sigma^2 = \frac{\sum_i (k_i - \langle k \rangle)^2}{K}$$
 
 In python:
@@ -97,6 +99,7 @@ variance = np.var(img, axis=0)
 ```
 #### Apparent brightness
 Apparent brightness is calculated as:<br>
+
 $$B = \frac{\sigma^2}{\langle k \rangle}$$
 
 In python:
@@ -105,6 +108,7 @@ apparent_brightness = variance / average_intensity
 ```
 #### Apparent number
 Apparent number is calculated as:<br>
+
 $$N = \frac{\langle k \rangle^2}{\sigma^2}$$
 
 In python:
@@ -113,6 +117,7 @@ apparent_number = average_intensity**2 / variance
 ```
 #### Brightness
 Brightness is calculated as:<br>
+
 $$\varepsilon = \frac{\sigma^2 - \langle k \rangle}{\langle k \rangle - k_0}$$
 
 In python:
@@ -121,6 +126,7 @@ brightness = (variance - average_intensity) / (average_intensity - background)
 ```
 #### Number
 Number is calculated as:<br>
+
 $$n = \frac{(\langle k \rangle - k_0)^2}{\sigma^2 - \langle k \rangle}$$
 
 In python:
