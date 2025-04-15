@@ -1,7 +1,8 @@
 import argparse
 import numbers_and_brightness
 from pathlib import Path
-from numbers_and_brightness.numbers_and_brightness import numbers_and_brightness_analysis, numbers_and_brightness_batch
+import os
+from numbers_and_brightness.analysis import numbers_and_brightness_analysis, numbers_and_brightness_batch
 from numbers_and_brightness.gui import nb_gui
 
 from numbers_and_brightness.defaults import (
@@ -25,6 +26,7 @@ def _str2bool(value):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--version', action='version', version=f'numbers_and_brightness {numbers_and_brightness.__version__}')
+    parser.add_argument("--shortcut", action='store_true')
     parser.add_argument("--file", type=Path)
     parser.add_argument("--folder", type=Path)
     parser.add_argument("--background", type=float, default=DEFAULT_BACKGROUND)
@@ -59,5 +61,21 @@ def main():
                                      analysis=args.analysis,
                                      erode=args.erode
                                      )
+    elif args.shortcut:
+        try:
+            script_path = os.path.abspath(__file__)
+            from pyshortcuts import make_shortcut
+            
+            make_shortcut(script_path, 
+                        name="N&B",
+                        desktop=True,
+                        startmenu=True
+                        )            
+            print("Succesfully created desktop shortcut")
+        except Exception as error:
+            print(f"Failed to create shortcut:\n{error}")
     else:
         nb_gui()
+
+if __name__=="__main__":
+    main()

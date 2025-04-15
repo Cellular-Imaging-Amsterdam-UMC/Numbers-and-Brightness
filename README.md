@@ -46,6 +46,12 @@ nb_gui()
 C:\Users\User> numbers_and_brightness
 ```
 
+#### Desktop shortcut
+Additionally, a desktop (and start menu) shortcut can be created using the following command:
+```shell
+C:\Users\User> numbers_and_brightness --shortcut
+```
+
 ![](./assets/images/gui.png)
 
 ### Parameters
@@ -160,3 +166,4 @@ This package depends on:<br>
 - "tifffile>=2025.3.30" .tiff i/o
 - "tqdm>=4.67.1" for progressbar
 - "customtkinter>=5.2.2" for gui
+- "pyshortcuts>=1.9.5" for creating a desktop shortcut

@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 [project]
 
 name = "numbers_and_brightness"
-version = "0.1.0"
+version = "0.1.1"
 description = "Numbers and brightness analysis for microscopic image analysis implemented in python."
 readme = "README.md"
 authors = [
@@ -29,17 +29,18 @@ dependencies = [
     "scipy>=1.15.2",
     "tifffile>=2025.3.30",
     "tqdm>=4.67.1",
-    "customtkinter>=5.2.2"
+    "customtkinter>=5.2.2",
+    "pyshortcuts>=1.9.5"
 ]
 
 [project.urls]
-"Homepage" = "https://github.com/JvB22/Numbers-and-brightness"
+"Homepage" = "https://github.com/JvB22/Numbers_and_brightness"
 
 [tool.setuptools]
-package-dir = {"" = "src"}
+package-dir = {"" = "."}
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
 
 [project.scripts]
 numbers_and_brightness = "numbers_and_brightness.cli:main"

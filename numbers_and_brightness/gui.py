@@ -4,7 +4,7 @@ import warnings
 import traceback
 from itertools import chain
 
-from numbers_and_brightness.numbers_and_brightness import numbers_and_brightness_analysis, numbers_and_brightness_batch
+from numbers_and_brightness.analysis import numbers_and_brightness_analysis, numbers_and_brightness_batch
 from numbers_and_brightness import __version__
 from numbers_and_brightness.defaults import (
     DEFAULT_BACKGROUND,
