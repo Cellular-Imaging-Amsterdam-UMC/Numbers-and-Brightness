@@ -1,164 +1,294 @@
-import customtkinter as ctk
-from tkinter import filedialog
+import sys
 import warnings
 import traceback
 from itertools import chain
+from pathlib import Path
+from importlib import resources
+import os
 
+from PyQt6.QtWidgets import (
+    QApplication, QMainWindow, QWidget,
+    QPushButton, QLabel, QLineEdit, QCheckBox, QGroupBox, QFileDialog,
+    QGridLayout
+)
+from PyQt6.QtCore import QThread, pyqtSlot, pyqtSignal
+from PyQt6.QtGui import QAction, QIcon
+
+# Import the necessary functions from the package
 from numbers_and_brightness.analysis import numbers_and_brightness_analysis, numbers_and_brightness_batch
+from numbers_and_brightness._gui_components._utils import wrap_text, show_error_message, show_finished_popup
 from numbers_and_brightness import __version__
-from numbers_and_brightness.defaults import (
+from numbers_and_brightness._defaults import (
     DEFAULT_BACKGROUND,
     DEFAULT_SEGMENT,
     DEFAULT_DIAMETER,
     DEFAULT_FLOW_THRESHOLD,
     DEFAULT_CELLPROB_THRESHOLD,
     DEFAULT_ANALYSIS,
-    DEFAULT_ERODE
+    DEFAULT_ERODE,
+    DEFAULT_BLEACH_CORR
 )
 
-def wrap(name: str, max_num: int):
-    if len(name)>max_num:
-        return f"...{name[-max_num:]}"
+import numbers_and_brightness
 
-class App(ctk.CTk):
+# Import GUI components
+from numbers_and_brightness._gui_components._brightness_intensity import brightness_intensity_window
+
+class Worker(QThread):
+    finished = pyqtSignal()
+    error = pyqtSignal(Exception)
+    
+    def __init__(self, fn, *args, **kwargs):
+        super().__init__()
+        self.fn = fn
+        self.args = args
+        self.kwargs = kwargs
+        
+    def run(self):
+        try:
+            self.fn(*self.args, **self.kwargs)
+            self.finished.emit()
+        except Exception as e:
+            traceback.print_exc()
+            self.error.emit(e)
+
+class NumbersAndBrightnessApp(QMainWindow):
     def __init__(self):
         super().__init__()
-
-        self.title(f"Numbers and brightness Analysis - Version {__version__}")
-        self.resizable(False, False)
-
+        
+        # Initialize instance variables
         self.file = ""
         self.folder = ""
-        self.segment = ctk.BooleanVar(value=DEFAULT_SEGMENT)
-        self.analysis = ctk.BooleanVar(value=DEFAULT_ANALYSIS)
 
-        self.file_select_button = ctk.CTkButton(master=self, text="Select file", command=self.get_file)
-        self.file_select_button.grid(row=0, column=0, pady=(10, 5), padx=10, sticky='nesw', columnspan=2)
+        self.b_i_windows = []
 
-        self.folder_select_button = ctk.CTkButton(master=self, text="Select folder", command=self.get_folder)
-        self.folder_select_button.grid(row=1, column=0, pady=(5, 5), padx=10, sticky='nesw', columnspan=2)
+        self.init_ui()
 
-        self.background_label = ctk.CTkLabel(master=self, text="Background:")
-        self.background_label.grid(row=2, column=0, pady=(5,5), padx=10, sticky='w')
-        self.background_input = ctk.CTkEntry(master=self)
-        self.background_input.grid(row=2, column=1, pady=(5,5), padx=10, sticky='nesw')
-        self.background_input.insert(0, DEFAULT_BACKGROUND)
+    def init_ui(self):
+        """Initialize the user interface"""
+        self.setWindowTitle(f"Numbers and Brightness Analysis - Version {__version__}")
 
-        self.segment_label = ctk.CTkLabel(master=self, text="Segment:")
-        self.segment_label.grid(row=3, column=0, pady=(5,5), padx=10, sticky='w')
-        self.segment_input = ctk.CTkCheckBox(master=self, variable=self.segment, text="")
-        self.segment_input.grid(row=3, column=1, pady=(5,5), padx=10, sticky='nesw')
-        
-        self.cellpose_frame = ctk.CTkFrame(master=self)
-        self.cellpose_frame.grid(row=4, column=0, pady=(5,5), padx=10, sticky='nesw', columnspan=2)
+        # Main widget and layout
+        central_widget = QWidget(self)
+        self.setCentralWidget(central_widget)
+        main_layout = QGridLayout(central_widget)
+        main_layout.setSpacing(10)
+        main_layout.setContentsMargins(20, 20, 20, 20)
 
-        self.cellpose_label = ctk.CTkLabel(master=self.cellpose_frame, text="Cellpose settings:")
-        self.cellpose_label.grid(row=3, column=0, pady=(10,5), padx=10, sticky='nesw')
+        # File and folder selection buttons
+        self.file_select_button = QPushButton("Select file")
+        self.file_select_button.clicked.connect(self.get_file)
+        main_layout.addWidget(self.file_select_button, 0, 0, 1, 2)
 
-        self.diameter_label = ctk.CTkLabel(master=self.cellpose_frame, text="Diameter:")
-        self.diameter_label.grid(row=4, column=0, pady=(5,5), padx=10, sticky='w')
-        self.diameter_input = ctk.CTkEntry(master=self.cellpose_frame)
-        self.diameter_input.grid(row=4, column=1, pady=(5,5), padx=10, sticky='nesw')
-        self.diameter_input.insert(0, DEFAULT_DIAMETER)
+        self.folder_select_button = QPushButton("Select folder")
+        self.folder_select_button.clicked.connect(self.get_folder)
+        main_layout.addWidget(self.folder_select_button, 1, 0, 1, 2)
 
-        self.flow_label = ctk.CTkLabel(master=self.cellpose_frame, text="Flow threshold:")
-        self.flow_label.grid(row=5, column=0, pady=(5,5), padx=10, sticky='w')
-        self.flow_input = ctk.CTkEntry(master=self.cellpose_frame)
-        self.flow_input.grid(row=5, column=1, pady=(5,5), padx=10, sticky='nesw')
-        self.flow_input.insert(0, DEFAULT_FLOW_THRESHOLD)
+        # Background input
+        bg_label = QLabel("Background:")
+        self.background_input = QLineEdit()
+        self.background_input.setText(str(DEFAULT_BACKGROUND))
+        main_layout.addWidget(bg_label, 2, 0)
+        main_layout.addWidget(self.background_input, 2, 1)
 
-        self.cellprob_label = ctk.CTkLabel(master=self.cellpose_frame, text="Cellprob threshold:")
-        self.cellprob_label.grid(row=6, column=0, pady=(5,10), padx=10, sticky='w')
-        self.cellprob_input = ctk.CTkEntry(master=self.cellpose_frame)
-        self.cellprob_input.grid(row=6, column=1, pady=(5,10), padx=10, sticky='nesw')
-        self.cellprob_input.insert(0, DEFAULT_CELLPROB_THRESHOLD)
+        # Segment checkbox
+        segment_label = QLabel("Segment:")
+        self.segment_input = QCheckBox()
+        self.segment_input.setChecked(DEFAULT_SEGMENT)
+        main_layout.addWidget(segment_label, 3, 0)
+        main_layout.addWidget(self.segment_input, 3, 1)
 
-        self.analysis_label = ctk.CTkLabel(master=self, text="Analysis:")
-        self.analysis_label.grid(row=7, column=0, pady=(5,5), padx=10, sticky='w')
-        self.analysis_input = ctk.CTkCheckBox(master=self, variable=self.analysis, text="")
-        self.analysis_input.grid(row=7, column=1, pady=(5,5), padx=10, sticky='nesw')
+        # Cellpose settings group
+        cellpose_group = QGroupBox("Cellpose settings:")
+        cellpose_layout = QGridLayout(cellpose_group)
 
-        self.erode_label = ctk.CTkLabel(master=self, text="Erode:")
-        self.erode_label.grid(row=8, column=0, pady=(5,5), padx=10, sticky='w')
-        self.erode_input = ctk.CTkEntry(master=self)
-        self.erode_input.grid(row=8, column=1, pady=(5,5), padx=10, sticky='nesw')
-        self.erode_input.insert(0, DEFAULT_ERODE)
+        # Diameter input
+        diameter_label = QLabel("Diameter:")
+        self.diameter_input = QLineEdit()
+        self.diameter_input.setText(str(DEFAULT_DIAMETER))
+        cellpose_layout.addWidget(diameter_label, 0, 0)
+        cellpose_layout.addWidget(self.diameter_input, 0, 1)
 
-        self.process_file_button = ctk.CTkButton(master=self, text="Process file", command=self.process_file)
-        self.process_file_button.grid(row=9, column=0, pady=(5, 5), padx=10, sticky='nesw', columnspan=2)
+        # Flow threshold input
+        flow_label = QLabel("Flow threshold:")
+        self.flow_input = QLineEdit()
+        self.flow_input.setText(str(DEFAULT_FLOW_THRESHOLD))
+        cellpose_layout.addWidget(flow_label, 1, 0)
+        cellpose_layout.addWidget(self.flow_input, 1, 1)
 
-        self.process_folder_button = ctk.CTkButton(master=self, text="Process folder", command=self.process_folder)
-        self.process_folder_button.grid(row=10, column=0, pady=(5, 10), padx=10, sticky='nesw', columnspan=2)
+        # Cellprob threshold input
+        cellprob_label = QLabel("Cellprob threshold:")
+        self.cellprob_input = QLineEdit()
+        self.cellprob_input.setText(str(DEFAULT_CELLPROB_THRESHOLD))
+        cellpose_layout.addWidget(cellprob_label, 2, 0)
+        cellpose_layout.addWidget(self.cellprob_input, 2, 1)
 
+        main_layout.addWidget(cellpose_group, 4, 0, 1, 2)
+
+        # Analysis checkbox
+        analysis_label = QLabel("Analysis:")
+        self.analysis_input = QCheckBox()
+        self.analysis_input.setChecked(DEFAULT_ANALYSIS)
+        main_layout.addWidget(analysis_label, 5, 0)
+        main_layout.addWidget(self.analysis_input, 5, 1)
+
+        # Erode input
+        erode_label = QLabel("Erode:")
+        self.erode_input = QLineEdit()
+        self.erode_input.setText(str(DEFAULT_ERODE))
+        main_layout.addWidget(erode_label, 6, 0)
+        main_layout.addWidget(self.erode_input, 6, 1)
+
+        # Bleach correction checkbox
+        bleach_corr_label = QLabel("Bleach correction:")
+        self.bleach_corr_input = QCheckBox()
+        self.bleach_corr_input.setChecked(DEFAULT_BLEACH_CORR)
+        main_layout.addWidget(bleach_corr_label, 7, 0)
+        main_layout.addWidget(self.bleach_corr_input, 7, 1)
+
+        # Process buttons
+        self.process_file_button = QPushButton("Process file")
+        self.process_file_button.clicked.connect(self.process_file)
+        main_layout.addWidget(self.process_file_button, 8, 0, 1, 2)
+
+        self.process_folder_button = QPushButton("Process folder")
+        self.process_folder_button.clicked.connect(self.process_folder)
+        main_layout.addWidget(self.process_folder_button, 9, 0, 1, 2)
+
+        # Store buttons for enabling/disabling
         self.select_buttons = [self.file_select_button, self.folder_select_button]
         self.process_buttons = [self.process_file_button, self.process_folder_button]
 
+        self.create_menu()
+
+    @pyqtSlot()
+    def create_menu(self):
+        # Create the menu bar
+        menu_bar = self.menuBar()
+
+        # Add a "File" menu
+        file_menu = menu_bar.addMenu("Tools")
+
+        # Create actions for the "File" menu
+        new_action = QAction("Brightness - Intensity", self)
+        new_action.triggered.connect(self.open_b_i)
+
+        # Add actions to the "File" menu
+        file_menu.addAction(new_action)
+
+    @pyqtSlot()
+    def open_b_i(self):
+        self.b_i_window = brightness_intensity_window()
+        self.b_i_window.show()
+        self.b_i_windows.append(self.b_i_window)
+
+    @pyqtSlot()
     def get_file(self):
-        filename = filedialog.askopenfilename()
-        if filename != "":
+        """Open file dialog to select a file"""
+        filename, _ = QFileDialog.getOpenFileName(self, "Select File")
+        if filename:
             self.file = filename
-            self.file_select_button.configure(text=wrap(filename, 50))
+            self.file_select_button.setText(wrap_text(filename, 50))
 
+    @pyqtSlot()
     def get_folder(self):
-        foldername = filedialog.askdirectory()
-        if foldername != "":
+        """Open file dialog to select a folder"""
+        foldername = QFileDialog.getExistingDirectory(self, "Select Folder")
+        if foldername:
             self.folder = foldername
-            self.folder_select_button.configure(text=wrap(foldername, 50))
+            self.folder_select_button.setText(wrap_text(foldername, 50))
 
+    def _set_buttons_enabled(self, enabled: bool):
+        """Helper method to enable/disable all buttons"""
+        for button in chain(self.select_buttons, self.process_buttons):
+            button.setEnabled(enabled)
+
+    """File analysis functions"""
+    def process_file_call(self):
+        numbers_and_brightness_analysis(
+            file=self.file,
+            background=float(self.background_input.text()),
+            segment=self.segment_input.isChecked(),
+            diameter=int(self.diameter_input.text()),
+            flow_threshold=float(self.flow_input.text()),
+            cellprob_threshold=float(self.cellprob_input.text()),
+            analysis=self.analysis_input.isChecked(),
+            erode=int(self.erode_input.text()),
+            bleach_corr=self.bleach_corr_input.isChecked()
+        )
+        print(f"Processed: {self.file}")
+
+    def process_file_finished(self):
+        show_finished_popup(parent=self, title="Finished", message=f"Finished analysis of: {self.file}")
+        self._set_buttons_enabled(True)
+
+    def process_file_error(self, error):
+        show_error_message(parent=self, message=str(error))
+        self._set_buttons_enabled(True)
+
+    @pyqtSlot()
     def process_file(self):
-        if self.file == "":
+        """Process a single file"""
+        if not self.file:
             print("Select a file")
             return
-        try:
-            # Disable all buttons
-            for button in chain(self.select_buttons, self.process_buttons):
-                button.configure(state="disabled")
-            numbers_and_brightness_analysis(
-                file=self.file,
-                background=float(self.background_input.get()),
-                segment=self.segment.get(),
-                diameter=int(self.diameter_input.get()),
-                flow_threshold=float(self.flow_input.get()),
-                cellprob_threshold=float(self.cellprob_input.get()),
-                analysis=self.analysis.get(),
-                erode=int(self.erode_input.get())
-            )
-            print(f"Processed: {self.file}")
-        except:
-            traceback.print_exc()
+            
+        self._set_buttons_enabled(False)
+        self.worker = Worker(fn=self.process_file_call)
 
-        for button in chain(self.select_buttons, self.process_buttons):
-            button.configure(state="normal")
+        self.worker.finished.connect(self.process_file_finished)
+        self.worker.error.connect(self.process_file_error)
 
+        self.worker.start()
 
+    """Folder analysis functions"""
+    def process_folder_call(self):
+        numbers_and_brightness_batch(
+            folder=self.folder,
+            background=float(self.background_input.text()),
+            segment=self.segment_input.isChecked(),
+            diameter=int(self.diameter_input.text()),
+            flow_threshold=float(self.flow_input.text()),
+            cellprob_threshold=float(self.cellprob_input.text()),
+            analysis=self.analysis_input.isChecked(),
+            erode=int(self.erode_input.text()),
+            bleach_corr=self.bleach_corr_input.isChecked()
+        )
+        print(f"Processed: {self.folder}")
+
+    def process_folder_finished(self):
+        show_finished_popup(parent=self, title="Finished", message=f"Finished analysis of: {self.folder}")
+        self._set_buttons_enabled(True)
+
+    def process_folder_error(self, error):
+        show_error_message(parent=self, message=str(error))
+        self._set_buttons_enabled(True)
+
+    @pyqtSlot()
     def process_folder(self):
-        if self.folder == "":
+        """Process a folder"""
+        if not self.folder:
             print("Select a folder")
             return
-        try:
-            # Disable all buttons
-            for button in chain(self.select_buttons, self.process_buttons):
-                button.configure(state="disabled")
-            numbers_and_brightness_batch(
-                folder=self.folder,
-                background=float(self.background_input.get()),
-                segment=self.segment.get(),
-                diameter=int(self.diameter_input.get()),
-                flow_threshold=float(self.flow_input.get()),
-                cellprob_threshold=float(self.cellprob_input.get()),
-                analysis=self.analysis.get(),
-                erode=int(self.erode_input.get())
-            )
-        except:
-            traceback.print_exc()
-    
-        for button in chain(self.select_buttons, self.process_buttons):
-            button.configure(state="normal")
+            
+        self._set_buttons_enabled(False)
+        self.worker = Worker(fn=self.process_folder_call)
+
+        self.worker.finished.connect(self.process_folder_finished)
+        self.worker.error.connect(self.process_folder_error)
+
+        self.worker.start()
+
 def nb_gui():
+    """Initialize and run the GUI application"""
     with warnings.catch_warnings():
-        warnings.simplefilter("ignore", UserWarning)
-        app = App()
-        app.mainloop()
+        warnings.simplefilter("ignore", UserWarning)    # Catches matplotlib plt gui warnings
+        app = QApplication(sys.argv)
+        icon_path = os.path.join(resources.files(numbers_and_brightness), "_gui_components", "nb_icon.png")
+        app.setWindowIcon(QIcon(str(icon_path)))
+        window = NumbersAndBrightnessApp()
+        window.show()
+        sys.exit(app.exec())
 
 if __name__ == "__main__":
     nb_gui()

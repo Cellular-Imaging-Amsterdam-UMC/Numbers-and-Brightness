@@ -2,10 +2,11 @@ import argparse
 import numbers_and_brightness
 from pathlib import Path
 import os
+from importlib import resources
 from numbers_and_brightness.analysis import numbers_and_brightness_analysis, numbers_and_brightness_batch
 from numbers_and_brightness.gui import nb_gui
 
-from numbers_and_brightness.defaults import (
+from numbers_and_brightness._defaults import (
     DEFAULT_BACKGROUND,
     DEFAULT_SEGMENT,
     DEFAULT_DIAMETER,
@@ -67,9 +68,11 @@ def main():
             from pyshortcuts import make_shortcut
             
             make_shortcut(script_path, 
-                        name="N&B",
+                        name="Numbers and Brightness",
                         desktop=True,
-                        startmenu=True
+                        startmenu=True,
+                        icon= os.path.join(resources.files(numbers_and_brightness), "_gui_components", "nb_icon.ico")
+
                         )            
             print("Succesfully created desktop shortcut")
         except Exception as error:

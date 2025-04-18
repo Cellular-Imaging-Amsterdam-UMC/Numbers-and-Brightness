@@ -61,11 +61,11 @@ The package contains the following parameters. These parameters can be altered b
     - background noise in the signal. Will be included in the calculations as $k_0$ as described by Digman et al., 2008.
 - segment : bool, default = False
     - perform automatic segmentation of the cells using cellpose
-- diameter : int, default = 100
+- diameter : int, default = 75
     - expected diameter of the cell, passed to cellpose model
 - flow_threshold : float, default = 0.4
     - flow threshold, passed to cellpose model
--  cellprob_threshold : float, default = 3
+-  cellprob_threshold : float, default = 4
     - cellprob threshold, passed to cellpose model
 - analysis : bool, default = False
     - perform analysis by plotting intensity of cell against apparent brightness
@@ -142,28 +142,18 @@ number = ((average_intensity-background)**2) / np.clip((variance - average_inten
 Here the denominator is clipped (limited) to a value of 1e-6 to prevent extremely high number values.
 
 ## Output
-For each image, the package generates a new folder containing the following output:<br>
+For each image, the package generates a new folder containing extensive output:<br>
 
 ![](./assets/images/output.png)
 
-Examples:
+## Examples:
 
 ![](./assets/images/number.png)
 
 ![](./assets/images/eroded_mask.png)
 
-![](./assets/images/mask_on_brightness.png)
+### Automatic batch processing
+![](./assets/images/output_csv.png)
 
+### Interactive data inspection
 ![](./assets/images/brightness_x_intensity.png)
-
-## Dependencies
-This package depends on:<br>
-- "cellpose>=3.1.1.1" for cell segmentation
-- "matplotlib>=3.10.1" for plotting
-- "numpy>=2.0.2" for array calculations
-- "opencv-python>=4.11.0.86" for image processing
-- "scipy>=1.15.2" for image processing
-- "tifffile>=2025.3.30" .tiff i/o
-- "tqdm>=4.67.1" for progressbar
-- "customtkinter>=5.2.2" for gui
-- "pyshortcuts>=1.9.5" for creating a desktop shortcut
