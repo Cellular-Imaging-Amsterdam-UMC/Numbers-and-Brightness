@@ -215,6 +215,7 @@ def _calculate_numbers_and_brightness(img, background, outputdir):
     for i, arr in enumerate(arrays):
         # Save tifffile
         tifffile.imwrite(os.path.join(outputdir, f"{names[i]}.tif"), arr)
+        np.save(os.path.join(outputdir, f"{names[i]}.npy"), arr)
 
         # Create and save matplotlib image
         plt.imshow(arr, cmap='plasma')
@@ -297,17 +298,18 @@ def numbers_and_brightness_analysis(file: str,
 
     # Calculate numbers and brightness
     average_intensity, variance, apparent_brightness, apparent_number, brightness, number = _calculate_numbers_and_brightness(img=img, background=background, outputdir=outputdir)
-    
+
     # Perform analysis
-    average_in_roi = None
     if analysis:
         _b_i_plot(outputdir=outputdir, mask=mask, brightness=apparent_brightness, intensity=average_intensity)
         average_in_roi = _average_values_in_roi(average_intensity, variance, apparent_brightness, apparent_number, brightness, number, mask)
         average_in_roi.to_csv(os.path.join(outputdir, "average_values_in_roi.csv"))
+    else:
+        average_in_roi = None
 
     return average_in_roi
 
-    
+
 
 def numbers_and_brightness_batch(
         folder,

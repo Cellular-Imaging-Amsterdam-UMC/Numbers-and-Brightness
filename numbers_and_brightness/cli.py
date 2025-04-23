@@ -13,7 +13,8 @@ from numbers_and_brightness._defaults import (
     DEFAULT_FLOW_THRESHOLD,
     DEFAULT_CELLPROB_THRESHOLD,
     DEFAULT_ANALYSIS,
-    DEFAULT_ERODE
+    DEFAULT_ERODE,
+    DEFAULT_BLEACH_CORR
 )
 
 def _str2bool(value):
@@ -37,43 +38,49 @@ def main():
     parser.add_argument("--cellprob_threshold", type=float, default=DEFAULT_CELLPROB_THRESHOLD)
     parser.add_argument("--analysis", type=_str2bool, default=DEFAULT_ANALYSIS)
     parser.add_argument("--erode", type=int, default=DEFAULT_ERODE)
+    parser.add_argument("--bleach_corr", type=_str2bool, default=DEFAULT_BLEACH_CORR)
 
     args = parser.parse_args()
 
     if args.file:
-        numbers_and_brightness_analysis(args.file.resolve(),
-                                        background=args.background,
-                                        segment=args.segment,
-                                        diameter=args.diameter,
-                                        flow_threshold=args.flow_threshold,
-                                        cellprob_threshold=args.cellprob_threshold,
-                                        analysis=args.analysis,
-                                        erode=args.erode
-                                        )
+        numbers_and_brightness_analysis(
+            args.file.resolve(),
+            background=args.background,
+            segment=args.segment,
+            diameter=args.diameter,
+            flow_threshold=args.flow_threshold,
+            cellprob_threshold=args.cellprob_threshold,
+            analysis=args.analysis,
+            erode=args.erode,
+            bleach_corr=args.bleach_corr
+        )
         print(f"Processed: {args.file}")
         
     elif args.folder:
-        numbers_and_brightness_batch(args.folder.resolve(),
-                                     background=args.background,
-                                     segment=args.segment,
-                                     diameter=args.diameter,
-                                     flow_threshold=args.flow_threshold,
-                                     cellprob_threshold=args.cellprob_threshold,
-                                     analysis=args.analysis,
-                                     erode=args.erode
-                                     )
+        numbers_and_brightness_batch(
+            args.folder.resolve(),
+            background=args.background,
+            segment=args.segment,
+            diameter=args.diameter,
+            flow_threshold=args.flow_threshold,
+            cellprob_threshold=args.cellprob_threshold,
+            analysis=args.analysis,
+            erode=args.erode,
+            bleach_corr=args.bleach_corr
+        )
+
     elif args.shortcut:
         try:
             script_path = os.path.abspath(__file__)
             from pyshortcuts import make_shortcut
             
-            make_shortcut(script_path, 
-                        name="Numbers and Brightness",
-                        desktop=True,
-                        startmenu=True,
-                        icon= os.path.join(resources.files(numbers_and_brightness), "_gui_components", "nb_icon.ico")
-
-                        )            
+            make_shortcut(
+                script_path, 
+                name="Numbers and Brightness",
+                desktop=True,
+                startmenu=True,
+                icon=os.path.join(resources.files(numbers_and_brightness), "_gui_components", "nb_icon.ico")
+            )
             print("Succesfully created desktop shortcut")
         except Exception as error:
             print(f"Failed to create shortcut:\n{error}")

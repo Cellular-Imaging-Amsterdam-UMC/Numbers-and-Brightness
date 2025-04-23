@@ -34,7 +34,7 @@ C:\Users\User> numbers_and_brightness --folder "Images"
 ```
 
 ### Graphical user interface
-The package contains a small GUI that can be accessed as follows:
+The package contains a GUI that can be accessed as follows:
 #### Python
 ```python
 from numbers_and_brightness.gui import nb_gui
@@ -71,8 +71,11 @@ The package contains the following parameters. These parameters can be altered b
     - perform analysis by plotting intensity of cell against apparent brightness
 - erode : int, default = 2
     - erode the edges of the cell mask to ensure only pixels inside the cell are used for the analysis
+- bleach_corr : bool, default = False
+    - perform bleaching correction on the input image before analysis
+    - bleach correction is performed by fitting a linear formula to the intensity over time, which is then used to correct the intensity
 
-Examples:
+#### Examples:
 ```shell
 C:\Users\User> numbers_and_brightness --folder "Images" --analysis true
 ```

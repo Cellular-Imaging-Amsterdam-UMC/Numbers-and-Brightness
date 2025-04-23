@@ -11,9 +11,11 @@ from cellpose import utils
 
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QComboBox,
-    QPushButton, QHBoxLayout, QGridLayout, QFileDialog
+    QPushButton, QGridLayout, QFileDialog, QLabel,
+    QLineEdit, QSizePolicy
 )
 
+from PyQt6.QtCore import Qt
 from PyQt6.QtCore import pyqtSlot
 
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
@@ -26,6 +28,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from ._utils import show_error_message
 
 class plot_widget(QWidget):
+    """Widget containing plots and controls"""
+
     def __init__(self, b_i_df, cellmask, brightness, intensity):
         super().__init__()
 
@@ -45,19 +49,70 @@ class plot_widget(QWidget):
         self.scatter_toolbar = NavigationToolbar(self.scatter_canvas, self)
 
         # Plot layout
+        self.scatter_canvas.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         scatter_layout = QVBoxLayout()
         scatter_layout.addWidget(self.scatter_toolbar)
         scatter_layout.addWidget(self.scatter_canvas)
         main_layout.addLayout(scatter_layout)
 
+        # Manual rectangle input
+        rect_input_layout = QGridLayout()
+        brightness_label = QLabel("Apparent Brightness: ")
+        intensity_label = QLabel("Intensity: ")
+
+        brightness_min_input_label = QLabel("Min:")
+        brightness_max_input_label = QLabel("Max:")
+        intensity_min_input_label = QLabel("Min:")
+        intensity_max_input_label = QLabel("Max:")
+
+        self.brightness_min_input = QLineEdit()
+        self.brightness_max_input = QLineEdit()
+        self.intensity_min_input = QLineEdit()
+        self.intensity_max_input = QLineEdit()
+
+        input_width = 50
+        self.brightness_min_input.setMaximumWidth(input_width)
+        self.brightness_max_input.setMaximumWidth(input_width)
+        self.intensity_min_input.setMaximumWidth(input_width)
+        self.intensity_max_input.setMaximumWidth(input_width)
+
+        self.brightness_min_input.returnPressed.connect(self.set_rectangle)
+        self.brightness_max_input.returnPressed.connect(self.set_rectangle)
+        self.intensity_min_input.returnPressed.connect(self.set_rectangle)
+        self.intensity_max_input.returnPressed.connect(self.set_rectangle)
+
+        rect_input_layout.addWidget(brightness_label, 0, 0, 1, 2)
+        rect_input_layout.addWidget(brightness_min_input_label, 1, 0, 1, 1)
+        rect_input_layout.addWidget(self.brightness_min_input, 1, 1, 1, 1, Qt.AlignmentFlag.AlignLeft)
+        rect_input_layout.addWidget(brightness_max_input_label, 2, 0, 1, 1)
+        rect_input_layout.addWidget(self.brightness_max_input, 2, 1, 1, 1, Qt.AlignmentFlag.AlignLeft)
+
+        rect_input_layout.addWidget(intensity_label, 0, 2, 1, 2)
+        rect_input_layout.addWidget(intensity_min_input_label, 1, 2, 1, 1)
+        rect_input_layout.addWidget(self.intensity_min_input, 1, 3, 1, 1, Qt.AlignmentFlag.AlignLeft)
+        rect_input_layout.addWidget(intensity_max_input_label, 2, 2, 1, 1)
+        rect_input_layout.addWidget(self.intensity_max_input, 2, 3, 1, 1, Qt.AlignmentFlag.AlignLeft)
+
+        apply_button = QPushButton("Apply")
+        apply_button.clicked.connect(self.set_rectangle)
+        rect_input_layout.addWidget(apply_button, 3, 0, 1, 4)
+
+        spacer = QWidget()
+        spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        rect_input_layout.addWidget(spacer, 0, 4, 3, 4)
+        columns = range(4)
+        for column in columns:
+            rect_input_layout.setColumnStretch(column, 0)
+        rect_input_layout.setColumnStretch(4, 1)
+
+        main_layout.addLayout(rect_input_layout)
+
         # Background option menu
         self.combo = QComboBox()
-
         self.background_options = {
             "Apparent Brightness" : self.brightness,
             "Intensity" : self.intensity
         }
-
         self.combo.addItems(list(self.background_options.keys()))
         self.combo.currentTextChanged.connect(self.update_background)
         main_layout.addWidget(self.combo)
@@ -76,8 +131,11 @@ class plot_widget(QWidget):
         self.create_scatter_figure()
         self.create_image_figure()
         self.scatter_figure.tight_layout()
+        self.resize(800, 450)
 
-    def create_scatter_figure(self):        
+    def create_scatter_figure(self):
+        """Create brightness - intensity scatter"""
+                
         xy = np.vstack([self.b_i_df["Intensity"], self.b_i_df["Brightness"]])
         z = gaussian_kde(xy)(xy)
         self.scatter = self.scatter_ax.scatter(self.b_i_df["Intensity"], self.b_i_df["Brightness"], c=z, s=1, cmap='hsv_r')
@@ -105,6 +163,8 @@ class plot_widget(QWidget):
         self.scatter_canvas.draw()
 
     def onselect(self, eclick, erelease):
+        """Rectangle function"""
+
         x1, y1 = eclick.xdata, eclick.ydata
         x2, y2 = erelease.xdata, erelease.ydata
 
@@ -113,10 +173,18 @@ class plot_widget(QWidget):
         self.rect_coords['ymin'] = min(y1, y2)
         self.rect_coords['ymax'] = max(y1, y2)
 
+        # Update input text
+        self.brightness_min_input.setText(f"{self.rect_coords['ymin']:.3f}")
+        self.brightness_max_input.setText(f"{self.rect_coords['ymax']:.3f}")
+        self.intensity_min_input.setText(f"{self.rect_coords['xmin']:.3f}")
+        self.intensity_max_input.setText(f"{self.rect_coords['xmax']:.3f}")
+
         # update image
         self.create_image_figure()
 
     def create_image_figure(self):
+        """Create background picture"""
+
         self.image_ax.clear()
         self.image_ax.set_title(self.selected_background, color=self.fg_color)
 
@@ -160,7 +228,41 @@ class plot_widget(QWidget):
         self.scatter_canvas.draw()
 
     def update_background(self, text):
+        """Update selected background"""
+
         self.selected_background=text
+        self.create_image_figure()
+
+    def set_rectangle(self):
+        """Manually set rectangle coordinates"""
+
+        # Read coordinate values from inputs
+        try:
+            ymin = float(self.brightness_min_input.text())
+            ymax = float(self.brightness_max_input.text())
+            xmin = float(self.intensity_min_input.text())
+            xmax = float(self.intensity_max_input.text())
+        except Exception as error:
+            show_error_message(self, message=f"Could not convert all input to numeric values:\n{error}")
+            return
+
+        # Set rectangle coordinates
+        self.rect_selector.extents = (xmin, xmax, ymin, ymax)
+        self.rect_selector.update()
+        
+        # Update rectangle dict
+        self.rect_coords['xmin'] = xmin
+        self.rect_coords['xmax'] = xmax
+        self.rect_coords['ymin'] = ymin
+        self.rect_coords['ymax'] = ymax
+
+        # Ensure visibility
+        self.rect_selector.set_active(True)
+        self.rect_selector.set_visible(True)
+        if hasattr(self.rect_selector, 'to_draw'):
+            self.rect_selector.to_draw.set_visible(True)
+
+        # Update image
         self.create_image_figure()
 
 class brightness_intensity_window(QMainWindow):
@@ -228,11 +330,11 @@ class brightness_intensity_window(QMainWindow):
             cellmask_path = os.path.join(foldername, maskfile)
             self.cellmask = np.load(cellmask_path)
         except:
-            show_error_message(self, f"Could not open file: \"{df_path}\". Please make sure the file is still there.")
+            show_error_message(self, f"Could not open file: \"{cellmask_path}\". Please make sure the file is still there.")
             return
 
+        # Initialize things
         self.folder = foldername
         self.folder_select_button.setText(foldername.name)
         self.setWindowTitle(f"Brightness - Intensity - {foldername.name}")
-
         self.init_graphs()

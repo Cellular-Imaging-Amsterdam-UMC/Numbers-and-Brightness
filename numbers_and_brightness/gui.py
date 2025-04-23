@@ -1,3 +1,4 @@
+# Default imports
 import sys
 import warnings
 import traceback
@@ -6,6 +7,7 @@ from pathlib import Path
 from importlib import resources
 import os
 
+# PyQt6 imports
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget,
     QPushButton, QLabel, QLineEdit, QCheckBox, QGroupBox, QFileDialog,
@@ -13,10 +15,11 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import QThread, pyqtSlot, pyqtSignal
 from PyQt6.QtGui import QAction, QIcon
+from PyQt6.QtGui import QPalette, QColor
 
 # Import the necessary functions from the package
 from numbers_and_brightness.analysis import numbers_and_brightness_analysis, numbers_and_brightness_batch
-from numbers_and_brightness._gui_components._utils import wrap_text, show_error_message, show_finished_popup
+from numbers_and_brightness._gui_components._utils import wrap_text, show_error_message, show_finished_popup, gui_logger
 from numbers_and_brightness import __version__
 from numbers_and_brightness._defaults import (
     DEFAULT_BACKGROUND,
@@ -279,11 +282,34 @@ class NumbersAndBrightnessApp(QMainWindow):
 
         self.worker.start()
 
+@gui_logger()
 def nb_gui():
     """Initialize and run the GUI application"""
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", UserWarning)    # Catches matplotlib plt gui warnings
         app = QApplication(sys.argv)
+
+        app.setStyle('Fusion')
+
+        # Set up dark palette
+        dark_palette = QPalette()
+        dark_palette.setColor(QPalette.ColorRole.Window, QColor(53, 53, 53))
+        dark_palette.setColor(QPalette.ColorRole.WindowText, QColor(255, 255, 255))
+        dark_palette.setColor(QPalette.ColorRole.Base, QColor(25, 25, 25))
+        dark_palette.setColor(QPalette.ColorRole.AlternateBase, QColor(53, 53, 53))
+        dark_palette.setColor(QPalette.ColorRole.ToolTipBase, QColor(255, 255, 255))
+        dark_palette.setColor(QPalette.ColorRole.ToolTipText, QColor(255, 255, 255))
+        dark_palette.setColor(QPalette.ColorRole.Text, QColor(255, 255, 255))
+        dark_palette.setColor(QPalette.ColorRole.Button, QColor(53, 53, 53))
+        dark_palette.setColor(QPalette.ColorRole.ButtonText, QColor(255, 255, 255))
+        dark_palette.setColor(QPalette.ColorRole.BrightText, QColor(255, 0, 0))
+        dark_palette.setColor(QPalette.ColorRole.Link, QColor(42, 130, 218))
+        dark_palette.setColor(QPalette.ColorRole.Highlight, QColor(42, 130, 218))
+        dark_palette.setColor(QPalette.ColorRole.HighlightedText, QColor(0, 0, 0))
+
+        # Apply the palette
+        app.setPalette(dark_palette)
+
         icon_path = os.path.join(resources.files(numbers_and_brightness), "_gui_components", "nb_icon.png")
         app.setWindowIcon(QIcon(str(icon_path)))
         window = NumbersAndBrightnessApp()

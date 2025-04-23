@@ -1,7 +1,7 @@
 [build-system]
 
 requires = [
-    "setuptools>=42",
+    "setuptools>=79",
     "wheel"
     ]
 build-backend = "setuptools.build_meta"
@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 [project]
 
 name = "numbers_and_brightness"
-version = "0.1.1"
+version = "0.1.4"
 description = "Numbers and brightness analysis for microscopic image analysis implemented in python."
 readme = "README.md"
 authors = [
@@ -42,6 +42,9 @@ package-dir = {"" = "."}
 
 [tool.setuptools.packages.find]
 where = ["."]
+
+[tool.setuptools.package-data]
+numbers_and_brightness = ["_gui_components/*.ico", "_gui_components/*.png"]
 
 [project.scripts]
 numbers_and_brightness = "numbers_and_brightness.cli:main"
