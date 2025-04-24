@@ -126,7 +126,8 @@ class plot_widget(QWidget):
         self.rect_coords = {'xmin': 0, 'xmax': 0, 'ymin': 0, 'ymax': 0}
         self.selected_points = []
         self.selected_background = list(self.background_options.keys())[0]
-
+        self.active_figure = False
+        
         # Create figures
         self.create_scatter_figure()
         self.create_image_figure()
@@ -185,6 +186,11 @@ class plot_widget(QWidget):
     def create_image_figure(self):
         """Create background picture"""
 
+        # Save xlim/ylim
+        if self.active_figure:
+            xlim = self.image_ax.get_xlim()
+            ylim = self.image_ax.get_ylim()
+
         self.image_ax.clear()
         self.image_ax.set_title(self.selected_background, color=self.fg_color)
 
@@ -224,6 +230,14 @@ class plot_widget(QWidget):
         self.image_ax.tick_params(colors=self.fg_color)
         for spine in self.image_ax.spines.values():
             spine.set_color(self.fg_color)
+
+        # Restore xlim/ylim
+        if self.active_figure:
+            self.image_ax.set_xlim(xlim)
+            self.image_ax.set_ylim(ylim)
+
+        # Signal that figure is now active
+        self.active_figure = True
 
         self.scatter_canvas.draw()
 

@@ -13,9 +13,8 @@ from PyQt6.QtWidgets import (
     QPushButton, QLabel, QLineEdit, QCheckBox, QGroupBox, QFileDialog,
     QGridLayout
 )
-from PyQt6.QtCore import QThread, pyqtSlot, pyqtSignal
-from PyQt6.QtGui import QAction, QIcon
-from PyQt6.QtGui import QPalette, QColor
+from PyQt6.QtCore import QThread, pyqtSlot, pyqtSignal, QUrl
+from PyQt6.QtGui import QAction, QIcon, QPalette, QColor, QDesktopServices
 
 # Import the necessary functions from the package
 from numbers_and_brightness.analysis import numbers_and_brightness_analysis, numbers_and_brightness_batch
@@ -98,6 +97,7 @@ class NumbersAndBrightnessApp(QMainWindow):
         segment_label = QLabel("Segment:")
         self.segment_input = QCheckBox()
         self.segment_input.setChecked(DEFAULT_SEGMENT)
+        self.segment_input.clicked.connect(self.handle_segment_state)
         main_layout.addWidget(segment_label, 3, 0)
         main_layout.addWidget(self.segment_input, 3, 1)
 
@@ -132,6 +132,7 @@ class NumbersAndBrightnessApp(QMainWindow):
         analysis_label = QLabel("Analysis:")
         self.analysis_input = QCheckBox()
         self.analysis_input.setChecked(DEFAULT_ANALYSIS)
+        self.analysis_input.clicked.connect(self.handle_segment_state)
         main_layout.addWidget(analysis_label, 5, 0)
         main_layout.addWidget(self.analysis_input, 5, 1)
 
@@ -139,6 +140,7 @@ class NumbersAndBrightnessApp(QMainWindow):
         erode_label = QLabel("Erode:")
         self.erode_input = QLineEdit()
         self.erode_input.setText(str(DEFAULT_ERODE))
+        self.erode_input.textChanged.connect(self.handle_segment_state)
         main_layout.addWidget(erode_label, 6, 0)
         main_layout.addWidget(self.erode_input, 6, 1)
 
@@ -146,6 +148,7 @@ class NumbersAndBrightnessApp(QMainWindow):
         bleach_corr_label = QLabel("Bleach correction:")
         self.bleach_corr_input = QCheckBox()
         self.bleach_corr_input.setChecked(DEFAULT_BLEACH_CORR)
+        self.bleach_corr_input.clicked.connect(self.handle_segment_state)
         main_layout.addWidget(bleach_corr_label, 7, 0)
         main_layout.addWidget(self.bleach_corr_input, 7, 1)
 
@@ -166,24 +169,30 @@ class NumbersAndBrightnessApp(QMainWindow):
 
     @pyqtSlot()
     def create_menu(self):
-        # Create the menu bar
         menu_bar = self.menuBar()
 
-        # Add a "File" menu
+        # Tools
         file_menu = menu_bar.addMenu("Tools")
+        b_i_action = QAction("Brightness - Intensity", self)
+        b_i_action.triggered.connect(self.open_b_i)
+        file_menu.addAction(b_i_action)
 
-        # Create actions for the "File" menu
-        new_action = QAction("Brightness - Intensity", self)
-        new_action.triggered.connect(self.open_b_i)
-
-        # Add actions to the "File" menu
-        file_menu.addAction(new_action)
+        # About
+        file_menu = menu_bar.addMenu("About")
+        github_action = QAction("GitHub", self)
+        github_action.triggered.connect(self.open_github)
+        file_menu.addAction(github_action)
 
     @pyqtSlot()
     def open_b_i(self):
         self.b_i_window = brightness_intensity_window()
         self.b_i_window.show()
         self.b_i_windows.append(self.b_i_window)
+
+    @pyqtSlot()
+    def open_github(self):
+        url = QUrl("https://github.com/JvB22/Numbers-and-brightness")
+        QDesktopServices.openUrl(url)
 
     @pyqtSlot()
     def get_file(self):
@@ -205,6 +214,17 @@ class NumbersAndBrightnessApp(QMainWindow):
         """Helper method to enable/disable all buttons"""
         for button in chain(self.select_buttons, self.process_buttons):
             button.setEnabled(enabled)
+
+    def handle_segment_state(self, checked):
+        """Automatically check 'segment' when required"""     
+        if (
+            self.analysis_input.isChecked() or 
+            self.bleach_corr_input.isChecked() or 
+            int(self.erode_input.text()) > 0
+        ):
+            self.segment_input.blockSignals(True)
+            self.segment_input.setChecked(True)
+            self.segment_input.blockSignals(False)
 
     """File analysis functions"""
     def process_file_call(self):
@@ -317,4 +337,5 @@ def nb_gui():
         sys.exit(app.exec())
 
 if __name__ == "__main__":
+
     nb_gui()

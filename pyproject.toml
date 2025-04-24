@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 [project]
 
 name = "numbers_and_brightness"
-version = "0.1.4"
+version = "0.1.5"
 description = "Numbers and brightness analysis for microscopic image analysis implemented in python."
 readme = "README.md"
 authors = [

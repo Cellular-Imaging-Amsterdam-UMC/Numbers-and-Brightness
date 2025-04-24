@@ -2,7 +2,6 @@
 import os
 import warnings
 from pathlib import Path
-import copy
 
 # External imports
 import tifffile
@@ -104,20 +103,8 @@ def _b_i_plot(outputdir, mask, brightness, intensity):
     """Create brightness vs intensity scatterplot"""
     if len(np.unique(mask))<2: return    # If no cells detected, cannot perform analysis
 
-    from cellpose import utils
     from scipy.stats import gaussian_kde
     
-    # Show mask on brightness
-    plt.imshow(brightness, cmap='plasma')
-    outlines = utils.outlines_list(mask)
-    for o in outlines:
-        plt.plot(o[:,0], o[:,1], color='r')
-    plt.axis('off')
-    plt.colorbar()
-    plt.title('mask on brightness')
-    plt.savefig(os.path.join(outputdir, "mask_on_brightness.png"))
-    plt.close()
-
     mask[mask>0] = 1    # Convert all cells in mask to 'True'
     mask = mask.astype(np.bool)
 
@@ -143,6 +130,7 @@ def _b_i_plot(outputdir, mask, brightness, intensity):
     plt.xlabel('Intensity')
     plt.ylabel('Brightness')
     plt.savefig(os.path.join(outputdir, "brightness_x_intensity.png"))
+    plt.close()
 
 def _bleach_corr(img, mask, outputdir):
     """Returns img corrected for bleaching"""
@@ -239,12 +227,15 @@ def _average_values_in_roi(
 
     mask = mask>0
 
-    avg_intensity = np.mean(intensity[mask])
-    avg_variance = np.mean(variance[mask])
-    avg_apparent_brightness = np.mean(apparent_brightness[mask])
-    avg_apparent_number = np.mean(apparent_number[mask])
-    avg_brightness = np.mean(brightness[mask])
-    avg_number = np.mean(number[mask])
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=RuntimeWarning)
+
+        avg_intensity = np.mean(intensity[mask])
+        avg_variance = np.mean(variance[mask])
+        avg_apparent_brightness = np.mean(apparent_brightness[mask])
+        avg_apparent_number = np.mean(apparent_number[mask])
+        avg_brightness = np.mean(brightness[mask])
+        avg_number = np.mean(number[mask])
 
     return pd.DataFrame({
         "Intensity" : avg_intensity,
@@ -359,3 +350,7 @@ def numbers_and_brightness_batch(
         combined_df = pd.concat(df_list)
         combined_df.index = files
         combined_df.to_csv(os.path.join(folder, "Folder_average_values_in_roi.csv"))
+
+        return combined_df
+    else:
+        return None
