@@ -160,3 +160,5 @@ For each image, the package generates a new folder containing extensive output:<
 
 ### Interactive data inspection
 ![](./assets/images/brightness_x_intensity.png)
+
+![](./assets/images/brightness_x_intensity_img_selection.png)

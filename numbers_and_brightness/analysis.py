@@ -184,7 +184,7 @@ def _bleach_corr(img, mask, outputdir):
 def _calculate_numbers_and_brightness(img, background, outputdir):
     # Calculate intensity and variance
     average_intensity = np.mean(img, axis=0)
-    variance = np.var(img, axis=0)
+    variance = np.var(img, axis=0, ddof=0)
 
     # Ignore 'division by zero' or 'invalid value encountered in divide' warnings caused by x/0 or 0/0
     with warnings.catch_warnings():

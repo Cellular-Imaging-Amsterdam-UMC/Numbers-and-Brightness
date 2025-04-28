@@ -9,20 +9,23 @@ import tifffile
 from scipy.stats import gaussian_kde
 from cellpose import utils
 
+# Import PyQt
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QComboBox,
     QPushButton, QGridLayout, QFileDialog, QLabel,
     QLineEdit, QSizePolicy
 )
-
 from PyQt6.QtCore import Qt
 from PyQt6.QtCore import pyqtSlot
 
+# Import matplotlib
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qtagg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
-from matplotlib.widgets import RectangleSelector
+from matplotlib.widgets import RectangleSelector, LassoSelector
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.path import Path as mplPath
+from matplotlib.colors import ListedColormap
 
 # Package imports
 from ._utils import show_error_message
@@ -30,10 +33,9 @@ from ._utils import show_error_message
 class plot_widget(QWidget):
     """Widget containing plots and controls"""
 
-    def __init__(self, b_i_df, cellmask, brightness, intensity):
+    def __init__(self, cellmask, brightness, intensity):
         super().__init__()
 
-        self.b_i_df = b_i_df
         self.cellmask = cellmask
         self.brightness = brightness
         self.intensity = intensity
@@ -55,7 +57,7 @@ class plot_widget(QWidget):
         scatter_layout.addWidget(self.scatter_canvas)
         main_layout.addLayout(scatter_layout)
 
-        # Manual rectangle input
+        # Manual rectangle input widgets
         rect_input_layout = QGridLayout()
         brightness_label = QLabel("Apparent Brightness: ")
         intensity_label = QLabel("Intensity: ")
@@ -121,12 +123,13 @@ class plot_widget(QWidget):
         # Set colors
         self.bg_color = self.palette().color(self.backgroundRole()).name()
         self.fg_color = "#949494"
+        self.lasso_selection_color = "#00ff00"
 
         # Variables
         self.rect_coords = {'xmin': 0, 'xmax': 0, 'ymin': 0, 'ymax': 0}
-        self.selected_points = []
         self.selected_background = list(self.background_options.keys())[0]
         self.active_figure = False
+        self.selected_mask = np.zeros_like(self.brightness).astype(np.bool)
         
         # Create figures
         self.create_scatter_figure()
@@ -136,10 +139,21 @@ class plot_widget(QWidget):
 
     def create_scatter_figure(self):
         """Create brightness - intensity scatter"""
+
+        self.scatter_ax.clear()
+        bool_mask = self.cellmask > 0
                 
-        xy = np.vstack([self.b_i_df["Intensity"], self.b_i_df["Brightness"]])
+        xy = np.vstack([self.intensity[bool_mask].flatten(), self.brightness[bool_mask].flatten()])
         z = gaussian_kde(xy)(xy)
-        self.scatter = self.scatter_ax.scatter(self.b_i_df["Intensity"], self.b_i_df["Brightness"], c=z, s=1, cmap='hsv_r')
+
+        self.scatter_data = np.column_stack([self.intensity[bool_mask].flatten(), self.brightness[bool_mask].flatten()])
+
+        # Scatter data
+        self.scatter = self.scatter_ax.scatter(self.scatter_data[:,0], self.scatter_data[:,1], c=z, s=1, cmap='spring')
+
+        # Highlight selected data by lasso selector
+        self.scatter = self.scatter_ax.scatter(self.intensity[self.selected_mask], self.brightness[self.selected_mask], c=self.lasso_selection_color, s=5)
+
         self.scatter_ax.set_title('Apparent Brightness - Intensity', color=self.fg_color)
         self.scatter_ax.set_xlabel('Intensity', color=self.fg_color)
         self.scatter_ax.set_ylabel('Apparent Brightness', color=self.fg_color)
@@ -151,8 +165,9 @@ class plot_widget(QWidget):
         for spine in self.scatter_ax.spines.values():
             spine.set_color(self.fg_color)
 
+        # Rectangle selector
         self.rect_selector = RectangleSelector(
-            self.scatter_ax, self.onselect, useblit=True,
+            self.scatter_ax, self.rectangle_onselect, useblit=True,
             button=[1],
             minspanx=5, minspany=5,
             spancoords='pixels',
@@ -163,7 +178,7 @@ class plot_widget(QWidget):
 
         self.scatter_canvas.draw()
 
-    def onselect(self, eclick, erelease):
+    def rectangle_onselect(self, eclick, erelease):
         """Rectangle function"""
 
         x1, y1 = eclick.xdata, eclick.ydata
@@ -180,7 +195,27 @@ class plot_widget(QWidget):
         self.intensity_min_input.setText(f"{self.rect_coords['xmin']:.3f}")
         self.intensity_max_input.setText(f"{self.rect_coords['xmax']:.3f}")
 
+        # Only redraw scatter if we just came from the lasso selection (so if mask is not empty)
+        redraw_scatter = not np.array_equal(self.selected_mask.astype(np.bool), np.zeros_like(self.brightness).astype(np.bool))
+
+        # Remove selected dots
+        self.selected_mask = np.zeros_like(self.brightness).astype(np.bool)
+
         # update image
+        self.create_image_figure()
+
+        if redraw_scatter:
+            self.create_scatter_figure()
+
+    def lasso_onselect(self, verts):
+        path = mplPath(verts)
+        self.selected_mask = path.contains_points(self.pixel_coords).reshape(self.img_height, self.img_width)
+        self.selected_mask = np.logical_and(self.selected_mask, self.cellmask)
+
+        # Remove rectangle selection
+        self.rect_coords = {'xmin': 0, 'xmax': 0, 'ymin': 0, 'ymax': 0}
+
+        self.create_scatter_figure()
         self.create_image_figure()
 
     def create_image_figure(self):
@@ -206,7 +241,14 @@ class plot_widget(QWidget):
 
         combined_mask = np.ma.masked_where(combined_mask == 0, combined_mask)
 
-        im = self.image_ax.imshow(self.background_options[self.selected_background], cmap='plasma')
+        # Define pixel coordinates
+        displayed_image = self.background_options[self.selected_background]
+        self.img_height, self.img_width = displayed_image.shape
+        y, x = np.mgrid[:self.img_height, :self.img_width]
+        self.pixel_coords = np.vstack((x.flatten(), y.flatten())).T
+
+        im = self.image_ax.imshow(displayed_image, cmap='plasma')
+
         # Add colorbar
         if hasattr(self, 'cax') and self.cax in self.scatter_figure.axes:
             self.cax.remove()
@@ -217,8 +259,12 @@ class plot_widget(QWidget):
         for spine in self.colorbar.ax.spines.values():
             spine.set_color(self.fg_color)
 
-        # Show selection mask
+        # Show selection mask from rectangle selector
         self.image_ax.imshow(combined_mask, cmap='summer', alpha=1)
+
+        # Show selection from lasso selector
+        selection_mask_alpha = np.ma.masked_where(self.selected_mask == 0, self.selected_mask)
+        self.image_ax.imshow(selection_mask_alpha, cmap=ListedColormap([self.lasso_selection_color]), alpha=1)
 
         # Outline cellmask
         outlines = utils.outlines_list(self.cellmask)
@@ -235,6 +281,9 @@ class plot_widget(QWidget):
         if self.active_figure:
             self.image_ax.set_xlim(xlim)
             self.image_ax.set_ylim(ylim)
+
+        # Lasso selector
+        self.lasso = LassoSelector(self.image_ax, onselect=self.lasso_onselect, useblit=True)
 
         # Signal that figure is now active
         self.active_figure = True
@@ -304,7 +353,7 @@ class brightness_intensity_window(QMainWindow):
 
     @pyqtSlot()
     def init_graphs(self):
-        plotwidget = plot_widget(b_i_df=self.b_i_df, cellmask=self.cellmask, brightness=self.brightness, intensity=self.intensity)
+        plotwidget = plot_widget(cellmask=self.cellmask, brightness=self.brightness, intensity=self.intensity)
         self.main_layout.addWidget(plotwidget, 1, 0, 1, 1)
 
     @pyqtSlot()
@@ -314,13 +363,6 @@ class brightness_intensity_window(QMainWindow):
             return
         
         foldername = Path(foldername)
-        # Check if brightness-intensity csv file is present
-        try:
-            df_path = os.path.join(foldername, "brightness_intensity_values.csv")
-            self.b_i_df = pd.read_csv(df_path)
-        except:
-            show_error_message(self, f"Could not open file: \"{df_path}\". Please make sure the file is still there.")
-            return
         
         # Check if brightness.tif is present
         try:

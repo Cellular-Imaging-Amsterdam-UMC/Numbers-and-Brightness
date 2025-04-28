@@ -327,7 +327,6 @@ def nb_gui():
         dark_palette.setColor(QPalette.ColorRole.Highlight, QColor(42, 130, 218))
         dark_palette.setColor(QPalette.ColorRole.HighlightedText, QColor(0, 0, 0))
 
-        # Apply the palette
         app.setPalette(dark_palette)
 
         icon_path = os.path.join(resources.files(numbers_and_brightness), "_gui_components", "nb_icon.png")
