@@ -143,8 +143,10 @@ class plot_widget(QWidget):
 
         self.scatter_ax.clear()
         bool_mask = self.cellmask > 0
-                
-        xy = np.vstack([self.intensity[bool_mask].flatten(), self.brightness[bool_mask].flatten()])
+        
+        bool_mask = bool_mask & np.isfinite(self.intensity) & np.isfinite(self.brightness)
+
+        xy = np.vstack([self.intensity[bool_mask].flatten(), self.brightness[bool_mask & np.isfinite(self.brightness)].flatten()])
         z = gaussian_kde(xy)(xy)
 
         self.scatter_data = np.column_stack([self.intensity[bool_mask].flatten(), self.brightness[bool_mask].flatten()])
@@ -382,7 +384,7 @@ class brightness_intensity_window(QMainWindow):
             return
         
         # Check if eroded mask is present, otherwise use non-eroded mask
-        maskfile = "max_projection_seg.npy"
+        maskfile = "segmentation_image_seg.npy"
         try:
             cellmask_path = os.path.join(foldername, maskfile)
             self.cellmask = np.load(cellmask_path, allow_pickle=True).item()["masks"]

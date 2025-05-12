@@ -399,7 +399,7 @@ def numbers_and_brightness_batch(
                 plt.imshow(results_dict["Apparent brightness"], cmap='plasma')
                 plt.axis('off')
                 plt.colorbar()
-                name = f"Apparent brightness - {results_dict["Filename"]}"
+                name = f"Apparent brightness - {results_dict['Filename']}"
                 plt.title(name)
                 plt.savefig(os.path.join(apparent_brightness_dir, f"{name}.png"))
                 plt.close()
@@ -414,7 +414,7 @@ def numbers_and_brightness_batch(
                     plt.plot(o[:,0], o[:,1], color='r')
                 plt.axis('off')
                 plt.colorbar()
-                name = f"Segmentation - {results_dict["Filename"]}"
+                name = f"Segmentation - {results_dict['Filename']}"
                 plt.title(name)
                 plt.savefig(os.path.join(mask_dir, f"{name}.png"))
                 plt.close()
