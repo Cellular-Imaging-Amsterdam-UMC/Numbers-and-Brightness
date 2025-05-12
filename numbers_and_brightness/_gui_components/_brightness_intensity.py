@@ -1,6 +1,7 @@
 # Imports
 from pathlib import Path
 import os
+import traceback
 
 # External imports
 import numpy as np
@@ -381,11 +382,15 @@ class brightness_intensity_window(QMainWindow):
             return
         
         # Check if eroded mask is present, otherwise use non-eroded mask
-        maskfile = "eroded_mask.npy" if os.path.isfile(os.path.join(foldername, "eroded_mask.npy")) else "cellmask.npy"
+        maskfile = "max_projection_seg.npy"
         try:
             cellmask_path = os.path.join(foldername, maskfile)
-            self.cellmask = np.load(cellmask_path)
+            self.cellmask = np.load(cellmask_path, allow_pickle=True).item()["masks"]
+            if np.max(self.cellmask) == 0:
+                show_error_message(self, f"No cellmask present in \"{cellmask_path}\". Please select an outputfolder that contains a segmented cell.")
+                return
         except:
+            traceback.print_exc
             show_error_message(self, f"Could not open file: \"{cellmask_path}\". Please make sure the file is still there.")
             return
 

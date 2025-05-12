@@ -7,7 +7,7 @@ def show_error_message(parent, message):
     msg_box.setText(message)
     msg_box.exec()
 
-def show_finished_popup(parent, message, title):
+def show_info_popup(parent, message, title):
     msg = QMessageBox(parent)
     msg.setIcon(QMessageBox.Icon.Information)
     msg.setWindowTitle(title)

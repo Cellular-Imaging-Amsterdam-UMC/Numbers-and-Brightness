@@ -6,19 +6,20 @@ from itertools import chain
 from pathlib import Path
 from importlib import resources
 import os
+from multiprocessing import Process
 
 # PyQt6 imports
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget,
     QPushButton, QLabel, QLineEdit, QCheckBox, QGroupBox, QFileDialog,
-    QGridLayout
+    QGridLayout, QMessageBox
 )
-from PyQt6.QtCore import QThread, pyqtSlot, pyqtSignal, QUrl
+from PyQt6.QtCore import QThread, pyqtSlot, pyqtSignal, QUrl, Qt
 from PyQt6.QtGui import QAction, QIcon, QPalette, QColor, QDesktopServices
 
 # Import the necessary functions from the package
 from numbers_and_brightness.analysis import numbers_and_brightness_analysis, numbers_and_brightness_batch
-from numbers_and_brightness._gui_components._utils import wrap_text, show_error_message, show_finished_popup, gui_logger
+from numbers_and_brightness._gui_components._utils import wrap_text, show_error_message, show_info_popup, gui_logger
 from numbers_and_brightness import __version__
 from numbers_and_brightness._defaults import (
     DEFAULT_BACKGROUND,
@@ -28,7 +29,9 @@ from numbers_and_brightness._defaults import (
     DEFAULT_CELLPROB_THRESHOLD,
     DEFAULT_ANALYSIS,
     DEFAULT_ERODE,
-    DEFAULT_BLEACH_CORR
+    DEFAULT_BLEACH_CORR,
+    DEFAULT_USE_EXISTING_MASK,
+    DEFAULT_CREATE_OVERVIEW
 )
 
 import numbers_and_brightness
@@ -152,14 +155,30 @@ class NumbersAndBrightnessApp(QMainWindow):
         main_layout.addWidget(bleach_corr_label, 7, 0)
         main_layout.addWidget(self.bleach_corr_input, 7, 1)
 
+        # Use existing masks checkbox
+        use_existing_label = QLabel("Use existing segmentation:")
+        self.use_existing_input = QCheckBox()
+        self.use_existing_input.setChecked(DEFAULT_USE_EXISTING_MASK)
+        self.use_existing_input.clicked.connect(self.handle_segment_state)
+        main_layout.addWidget(use_existing_label, 8, 0)
+        main_layout.addWidget(self.use_existing_input, 8, 1)
+
+        # Create overview checkbox
+        create_overview_label = QLabel("Create overview:")
+        self.create_overview_input = QCheckBox()
+        self.create_overview_input.setChecked(DEFAULT_CREATE_OVERVIEW)
+        self.create_overview_input.clicked.connect(self.handle_segment_state)
+        main_layout.addWidget(create_overview_label, 9, 0)
+        main_layout.addWidget(self.create_overview_input, 9, 1)
+
         # Process buttons
         self.process_file_button = QPushButton("Process file")
         self.process_file_button.clicked.connect(self.process_file)
-        main_layout.addWidget(self.process_file_button, 8, 0, 1, 2)
+        main_layout.addWidget(self.process_file_button, 10, 0, 1, 2)
 
         self.process_folder_button = QPushButton("Process folder")
         self.process_folder_button.clicked.connect(self.process_folder)
-        main_layout.addWidget(self.process_folder_button, 9, 0, 1, 2)
+        main_layout.addWidget(self.process_folder_button, 11, 0, 1, 2)
 
         # Store buttons for enabling/disabling
         self.select_buttons = [self.file_select_button, self.folder_select_button]
@@ -173,8 +192,13 @@ class NumbersAndBrightnessApp(QMainWindow):
 
         # Tools
         file_menu = menu_bar.addMenu("Tools")
+
         b_i_action = QAction("Brightness - Intensity", self)
         b_i_action.triggered.connect(self.open_b_i)
+        file_menu.addAction(b_i_action)
+
+        b_i_action = QAction("Cellpose", self)
+        b_i_action.triggered.connect(self.open_cellpose)
         file_menu.addAction(b_i_action)
 
         # About
@@ -188,6 +212,20 @@ class NumbersAndBrightnessApp(QMainWindow):
         self.b_i_window = brightness_intensity_window()
         self.b_i_window.show()
         self.b_i_windows.append(self.b_i_window)
+
+    def open_cellpose(self):
+        msg_box = QMessageBox(self)
+        msg_box.setWindowTitle("Starting Cellpose")
+        msg_box.setText("Initializing Cellpose GUI, this might take a few seconds.")
+        msg_box.setIcon(QMessageBox.Icon.Information)
+        msg_box.setWindowModality(Qt.WindowModality.NonModal)
+        msg_box.show()
+
+        from cellpose.gui import gui
+
+        p = Process(target=gui.run)
+        p.daemon = True
+        p.start()
 
     @pyqtSlot()
     def open_github(self):
@@ -237,12 +275,13 @@ class NumbersAndBrightnessApp(QMainWindow):
             cellprob_threshold=float(self.cellprob_input.text()),
             analysis=self.analysis_input.isChecked(),
             erode=int(self.erode_input.text()),
-            bleach_corr=self.bleach_corr_input.isChecked()
+            bleach_corr=self.bleach_corr_input.isChecked(),
+            use_existing_mask=self.use_existing_input.isChecked()
         )
         print(f"Processed: {self.file}")
 
     def process_file_finished(self):
-        show_finished_popup(parent=self, title="Finished", message=f"Finished analysis of: {self.file}")
+        show_info_popup(parent=self, title="Finished", message=f"Finished analysis of: {self.file}")
         self._set_buttons_enabled(True)
 
     def process_file_error(self, error):
@@ -275,12 +314,14 @@ class NumbersAndBrightnessApp(QMainWindow):
             cellprob_threshold=float(self.cellprob_input.text()),
             analysis=self.analysis_input.isChecked(),
             erode=int(self.erode_input.text()),
-            bleach_corr=self.bleach_corr_input.isChecked()
+            bleach_corr=self.bleach_corr_input.isChecked(),
+            create_overviews=self.create_overview_input.isChecked(),
+            use_existing_mask=self.use_existing_input.isChecked()
         )
         print(f"Processed: {self.folder}")
 
     def process_folder_finished(self):
-        show_finished_popup(parent=self, title="Finished", message=f"Finished analysis of: {self.folder}")
+        show_info_popup(parent=self, title="Finished", message=f"Finished analysis of: {self.folder}")
         self._set_buttons_enabled(True)
 
     def process_folder_error(self, error):
@@ -313,17 +354,25 @@ def nb_gui():
 
         # Set up dark palette
         dark_palette = QPalette()
+
         dark_palette.setColor(QPalette.ColorRole.Window, QColor(53, 53, 53))
         dark_palette.setColor(QPalette.ColorRole.WindowText, QColor(255, 255, 255))
+
         dark_palette.setColor(QPalette.ColorRole.Base, QColor(25, 25, 25))
         dark_palette.setColor(QPalette.ColorRole.AlternateBase, QColor(53, 53, 53))
+
         dark_palette.setColor(QPalette.ColorRole.ToolTipBase, QColor(255, 255, 255))
         dark_palette.setColor(QPalette.ColorRole.ToolTipText, QColor(255, 255, 255))
+
         dark_palette.setColor(QPalette.ColorRole.Text, QColor(255, 255, 255))
+
         dark_palette.setColor(QPalette.ColorRole.Button, QColor(53, 53, 53))
         dark_palette.setColor(QPalette.ColorRole.ButtonText, QColor(255, 255, 255))
+
         dark_palette.setColor(QPalette.ColorRole.BrightText, QColor(255, 0, 0))
+
         dark_palette.setColor(QPalette.ColorRole.Link, QColor(42, 130, 218))
+
         dark_palette.setColor(QPalette.ColorRole.Highlight, QColor(42, 130, 218))
         dark_palette.setColor(QPalette.ColorRole.HighlightedText, QColor(0, 0, 0))
 

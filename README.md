@@ -1,88 +1,23 @@
 # Numbers-and-brightness
-Numbers and brightness analysis for microscopic image analysis implemented in python.
+Numbers and brightness analysis for microscopic image analysis with automatic segmentation and interactive data visualisation implemented in python.
 
-Functions both as a python package and command-line tool.
+Functions as a Python package and Application.
 
 ## Installation
-Numbers and brightness can be installed as follows:
+Numbers and brightness is available on PyPi and can be installed as follows:
 ```shell
 pip install numbers_and_brightness
 ```
 
-## Usage
-### Python package
-Numbers and brightness can be used as follows:
+## Examples
+### Automatic batch processing
+![](./assets/images/output_csv.png)
 
-```python
-from numbers_and_brightness.numbers_and_brightness import numbers_and_brightness_analysis
-numbers_and_brightness_analysis(file = "./Images/image.tif")
-```
+### Interactive data inspection
+![](./assets/images/brightness_x_intensity.png)
 
-Or in batch processing mode:
+![](./assets/images/brightness_x_intensity_img_selection.png)
 
-```python
-from numbers_and_brightness.numbers_and_brightness import numbers_and_brightness_batch
-numbers_and_brightness_batch(folder = "./Images")
-```
-
-### Command line
-The package can also be accessed using the command line:
-
-```shell
-C:\Users\User> numbers_and_brightness --file "Images/image.tif"
-C:\Users\User> numbers_and_brightness --folder "Images"
-```
-
-### Graphical user interface
-The package contains a GUI that can be accessed as follows:
-#### Python
-```python
-from numbers_and_brightness.gui import nb_gui
-nb_gui()
-```
-
-#### Command line
-```shell
-C:\Users\User> numbers_and_brightness
-```
-
-#### Desktop shortcut
-Additionally, a desktop (and start menu) shortcut can be created using the following command:
-```shell
-C:\Users\User> numbers_and_brightness --shortcut
-```
-
-![](./assets/images/gui.png)
-
-### Parameters
-The package contains the following parameters. These parameters can be altered by passing the parameter to the function, or to the cli as '--parameter'
-
-- background : int, default = 0
-    - background noise in the signal. Will be included in the calculations as $k_0$ as described by Digman et al., 2008.
-- segment : bool, default = False
-    - perform automatic segmentation of the cells using cellpose
-- diameter : int, default = 75
-    - expected diameter of the cell, passed to cellpose model
-- flow_threshold : float, default = 0.4
-    - flow threshold, passed to cellpose model
--  cellprob_threshold : float, default = 4
-    - cellprob threshold, passed to cellpose model
-- analysis : bool, default = False
-    - perform analysis by plotting intensity of cell against apparent brightness
-- erode : int, default = 2
-    - erode the edges of the cell mask to ensure only pixels inside the cell are used for the analysis
-- bleach_corr : bool, default = False
-    - perform bleaching correction on the input image before analysis
-    - bleach correction is performed by fitting a linear formula to the intensity over time, which is then used to correct the intensity
-
-#### Examples:
-```shell
-C:\Users\User> numbers_and_brightness --folder "Images" --analysis true
-```
-```python
-from numbers_and_brightness.numbers_and_brightness import numbers_and_brightness_batch
-numbers_and_brightness_batch(folder = "./Images", analysis = True)
-```
 ## Core calculations
 All calculations are derived from Digman et al., 2008.
 
@@ -144,21 +79,88 @@ number = ((average_intensity-background)**2) / np.clip((variance - average_inten
 ```
 Here the denominator is clipped (limited) to a value of 1e-6 to prevent extremely high number values.
 
-## Output
-For each image, the package generates a new folder containing extensive output:<br>
+# Usage
+## Numbers and Brightness functionality
+### Graphical user interface
+The package contains a GUI that can be accessed as follows:
+#### Python
+```python
+from numbers_and_brightness.gui import nb_gui
+nb_gui()
+```
 
-![](./assets/images/output.png)
+#### Command line
+```shell
+C:\Users\User> numbers_and_brightness
+C:\Users\User> python -m numbers_and_brightness.gui
+```
 
-## Examples:
+#### Desktop shortcut
+Additionally, a desktop (and start menu) shortcut can be created using the following command:
+```shell
+C:\Users\User> numbers_and_brightness --shortcut
+```
+### Python package
+Numbers and brightness can be used as follows:
 
-![](./assets/images/number.png)
+```python
+from numbers_and_brightness.numbers_and_brightness import numbers_and_brightness_analysis
+numbers_and_brightness_analysis(file = "./Images/image.tif")
+```
 
-![](./assets/images/eroded_mask.png)
+Or in batch processing mode:
 
-### Automatic batch processing
-![](./assets/images/output_csv.png)
+```python
+from numbers_and_brightness.numbers_and_brightness import numbers_and_brightness_batch
+numbers_and_brightness_batch(folder = "./Images")
+```
 
-### Interactive data inspection
-![](./assets/images/brightness_x_intensity.png)
+### Command line
+The package can also be accessed using the command line:
 
-![](./assets/images/brightness_x_intensity_img_selection.png)
+```shell
+C:\Users\User> numbers_and_brightness --file "Images/image.tif"
+C:\Users\User> numbers_and_brightness --folder "Images"
+```
+
+### Parameters
+The package contains the following parameters. These parameters can be altered by passing the parameter to the function, or to the cli as '--parameter'
+
+- background : int, default = 0
+    - background noise in the signal. Will be included in the calculations as $k_0$ as described by Digman et al., 2008.
+- segment : bool, default = False
+    - perform automatic segmentation of the cells using cellpose
+    - cellpose will use a cuda device if available
+- diameter : int, default = 75
+    - expected diameter of the cell, passed to cellpose model
+- flow_threshold : float, default = 0.4
+    - flow threshold, passed to cellpose model
+-  cellprob_threshold : float, default = 4
+    - cellprob threshold, passed to cellpose model
+- analysis : bool, default = False
+    - perform analysis by plotting intensity of cell against apparent brightness
+- erode : int, default = 2
+    - erode the edges of the cell mask to ensure only pixels inside the cell are used for the analysis
+- bleach_corr : bool, default = False
+    - perform bleaching correction on the input image before analysis
+    - bleach correction is performed by fitting a linear formula to the intensity over time, which is then used to correct the intensity
+- use_existing_mask : bool, default = False
+    - whether to use already present masks in an outputfolder when extracting numbers and brightness values
+- create_overviews : bool, default = False
+    - whether to collect the apparent brightness/masks of all files in a folder in a specific folder
+
+#### Examples:
+```shell
+C:\Users\User> numbers_and_brightness --folder "Images" --analysis true
+```
+```python
+from numbers_and_brightness.numbers_and_brightness import numbers_and_brightness_batch
+numbers_and_brightness_batch(folder = "./Images", analysis = True)
+```
+
+## Step-by-step guides
+### Process folder
+
+### Interactive data-inspection
+
+### Use custom segmentation for analysis

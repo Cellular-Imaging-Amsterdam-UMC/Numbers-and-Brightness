@@ -2,6 +2,7 @@
 import os
 import warnings
 from pathlib import Path
+import traceback
 
 # External imports
 import tifffile
@@ -19,7 +20,9 @@ from numbers_and_brightness._defaults import (
     DEFAULT_CELLPROB_THRESHOLD,
     DEFAULT_ANALYSIS,
     DEFAULT_ERODE,
-    DEFAULT_BLEACH_CORR
+    DEFAULT_BLEACH_CORR,
+    DEFAULT_USE_EXISTING_MASK,
+    DEFAULT_CREATE_OVERVIEW
 )
 
 def _load_model():
@@ -36,19 +39,18 @@ def _load_model():
     model = models.Cellpose(gpu=gpu, model_type='cyto3')
     return model
 
-def _segment(original_img, outputdir, model, diameter, flow_threshold, cellprob_threshold):
-    if model == None:
-        model=_load_model()
-
-    max_proj = np.max(original_img, axis=0)
-    mask, flow, styles, diams = model.eval(max_proj, diameter=diameter, flow_threshold=flow_threshold, cellprob_threshold=cellprob_threshold)
-
-    # Save mask
-    np.save(os.path.join(outputdir, "cellmask.npy"), mask)
+def _savemask(mask, outputdir):
+    # Save mask using cellpose naming convention - allows cellpose to match tif image with segmentation for easy segmentation editing
+    mask_dict = {
+        "masks" : mask.astype(np.uint16),
+        "outlines" : mask.astype(np.uint16)
+    }
+    np.save(os.path.join(outputdir, f"segmentation_image_seg.npy"), mask_dict)
 
     # Save mask visualisation
+    img = tifffile.imread(os.path.join(outputdir, "segmentation_image.tif"))
     from cellpose import utils
-    plt.imshow(max_proj, cmap='gray')
+    plt.imshow(img, cmap='gray')
     outlines = utils.outlines_list(mask)
     for o in outlines:
         plt.plot(o[:,0], o[:,1], color='r')
@@ -58,13 +60,26 @@ def _segment(original_img, outputdir, model, diameter, flow_threshold, cellprob_
     plt.savefig(os.path.join(outputdir, "cellmask.png"))
     plt.close()
 
+def _segment(original_img, outputdir, model, diameter, flow_threshold, cellprob_threshold):
+    if model == None:
+        model=_load_model()
+
+    seg_img = np.mean(original_img, axis=0)
+    tifffile.imwrite(os.path.join(outputdir, "segmentation_image.tif"), seg_img)
+
+    mask, flow, styles, diams = model.eval(seg_img, diameter=diameter, flow_threshold=flow_threshold, cellprob_threshold=cellprob_threshold)
+
+    return mask
+
+def _load_existing_mask(outputdir):
+    mask = np.load(os.path.join(outputdir, "segmentation_image_seg.npy"), allow_pickle=True).item()["masks"]
     return mask
 
 def _erode_mask(img: np.ndarray, mask: np.ndarray, pixels: int, outputdir: str) -> np.ndarray:
     from cellpose import utils
     import cv2
 
-    plt.imshow(np.max(img, axis=0), cmap='gray')
+    plt.imshow(np.mean(img, axis=0), cmap='gray')
     outlines = utils.outlines_list(mask)
     for o in outlines:
         plt.plot(o[:,0], o[:,1], color='r')
@@ -94,9 +109,6 @@ def _erode_mask(img: np.ndarray, mask: np.ndarray, pixels: int, outputdir: str) 
     plt.savefig(os.path.join(outputdir, "eroded_mask.png"))
     plt.close()
 
-    # Save eroded mask
-    np.save(os.path.join(outputdir, "eroded_mask.npy"), mask)
-
     return mask
 
 def _b_i_plot(outputdir, mask, brightness, intensity):
@@ -105,12 +117,11 @@ def _b_i_plot(outputdir, mask, brightness, intensity):
 
     from scipy.stats import gaussian_kde
     
-    mask[mask>0] = 1    # Convert all cells in mask to 'True'
-    mask = mask.astype(np.bool)
+    all_cells = mask>0
 
-    brightness_cell = brightness[mask]
+    brightness_cell = brightness[all_cells]
     brightness_flat = brightness_cell.flatten()
-    intensity_cell = intensity[mask]
+    intensity_cell = intensity[all_cells]
     intensity_flat = intensity_cell.flatten()
 
     # Save values
@@ -225,17 +236,17 @@ def _average_values_in_roi(
         mask: np.ndarray
     ) -> pd.DataFrame:
 
-    mask = mask>0
+    all_cells = mask>0
 
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-        avg_intensity = np.mean(intensity[mask])
-        avg_variance = np.mean(variance[mask])
-        avg_apparent_brightness = np.mean(apparent_brightness[mask])
-        avg_apparent_number = np.mean(apparent_number[mask])
-        avg_brightness = np.mean(brightness[mask])
-        avg_number = np.mean(number[mask])
+        avg_intensity = np.mean(intensity[all_cells])
+        avg_variance = np.mean(variance[all_cells])
+        avg_apparent_brightness = np.mean(apparent_brightness[all_cells])
+        avg_apparent_number = np.mean(apparent_number[all_cells])
+        avg_brightness = np.mean(brightness[all_cells])
+        avg_number = np.mean(number[all_cells])
 
     return pd.DataFrame({
         "Intensity" : avg_intensity,
@@ -248,17 +259,20 @@ def _average_values_in_roi(
     index=[0]
     )
 
-def numbers_and_brightness_analysis(file: str,
-                                    model=None,
-                                    background=DEFAULT_BACKGROUND,
-                                    segment=DEFAULT_SEGMENT,
-                                    diameter=DEFAULT_DIAMETER,
-                                    flow_threshold=DEFAULT_FLOW_THRESHOLD,
-                                    cellprob_threshold=DEFAULT_CELLPROB_THRESHOLD,
-                                    analysis=DEFAULT_ANALYSIS,
-                                    erode=DEFAULT_ERODE,
-                                    bleach_corr=DEFAULT_BLEACH_CORR
-                                    ):
+def numbers_and_brightness_analysis(
+        file: str,
+        model=None,
+        background=DEFAULT_BACKGROUND,
+        segment=DEFAULT_SEGMENT,
+        diameter=DEFAULT_DIAMETER,
+        flow_threshold=DEFAULT_FLOW_THRESHOLD,
+        cellprob_threshold=DEFAULT_CELLPROB_THRESHOLD,
+        analysis=DEFAULT_ANALYSIS,
+        erode=DEFAULT_ERODE,
+        bleach_corr=DEFAULT_BLEACH_CORR,
+        use_existing_mask=DEFAULT_USE_EXISTING_MASK
+    ):
+
     file=Path(file)
 
     if analysis: segment = True     # Segmentation is needed for analysis
@@ -275,13 +289,31 @@ def numbers_and_brightness_analysis(file: str,
     outputdir = f"{os.path.splitext(file)[0]}_n_and_b_output"
     if not os.path.isdir(outputdir): os.mkdir(outputdir)
 
-    # Perform segmentation using cellpose
-    if segment:
-        mask = _segment(original_img=img, model=model, diameter=diameter, flow_threshold=flow_threshold, cellprob_threshold=cellprob_threshold, outputdir=outputdir)
+    results_dict = {"Filename" : file.stem}
 
+    mask = None
+    # Look for existing masks if requested
+    if use_existing_mask:
+        try:
+            mask = _load_existing_mask(outputdir)
+            results_dict["Mask"] = mask
+        except Exception as error:
+            traceback.print_exc
+            print(f"Could not load in existing mask for: {file.stem}, using cellpose instead")
+            mask = _segment(original_img=img, model=model, diameter=diameter, flow_threshold=flow_threshold, cellprob_threshold=cellprob_threshold, outputdir=outputdir)
+            results_dict["Mask"] = mask
+            
+    # Perform segmentation using cellpose
+    elif segment:
+        mask = _segment(original_img=img, model=model, diameter=diameter, flow_threshold=flow_threshold, cellprob_threshold=cellprob_threshold, outputdir=outputdir)
+        results_dict["Mask"] = mask
+ 
     # Erode mask if requested
     if erode>0:
         mask = _erode_mask(img=img, mask=mask, pixels=erode, outputdir=outputdir)
+        results_dict["Mask"] = mask
+
+    _savemask(mask=mask, outputdir=outputdir)
 
     # Perform bleach correction on image
     if bleach_corr:
@@ -295,12 +327,18 @@ def numbers_and_brightness_analysis(file: str,
         _b_i_plot(outputdir=outputdir, mask=mask, brightness=apparent_brightness, intensity=average_intensity)
         average_in_roi = _average_values_in_roi(average_intensity, variance, apparent_brightness, apparent_number, brightness, number, mask)
         average_in_roi.to_csv(os.path.join(outputdir, "average_values_in_roi.csv"))
+
+        results_dict["Intensity"] = average_intensity
+        results_dict["Variance"] = variance
+        results_dict["Apparent brightness"] = apparent_brightness
+        results_dict["Apparent number"] = apparent_number
+        results_dict["Brightness"] = brightness
+        results_dict["Number"] = number
+        
     else:
         average_in_roi = None
 
-    return average_in_roi
-
-
+    return average_in_roi, results_dict
 
 def numbers_and_brightness_batch(
         folder,
@@ -311,12 +349,15 @@ def numbers_and_brightness_batch(
         cellprob_threshold=DEFAULT_CELLPROB_THRESHOLD,
         analysis=DEFAULT_ANALYSIS,
         erode=DEFAULT_ERODE,
-        bleach_corr=DEFAULT_BLEACH_CORR
+        bleach_corr=DEFAULT_BLEACH_CORR,
+        use_existing_mask=DEFAULT_USE_EXISTING_MASK,
+        create_overviews=DEFAULT_CREATE_OVERVIEW
     ):
+
     folder = Path(folder)
 
     if analysis: segment = True     # Segmentation is needed for analysis
-    if bleach_corr: segment =  True # Segmentation is needed for bleaching correction
+    if bleach_corr: segment = True # Segmentation is needed for bleaching correction
     if erode>0: segment = True      # Cannot erode a mask without having a mask    
 
     # Collect all tiff files in folder
@@ -326,11 +367,18 @@ def numbers_and_brightness_batch(
     # Initialize model - will prevent the model from having to load again for every image
     model = _load_model() if segment else None
 
+    # If requested, create new folders that store all brightness/numbers/masking results of each file
+    if create_overviews:
+        apparent_brightness_dir = os.path.join(folder, "Apparent Brightness")
+        if not os.path.isdir(apparent_brightness_dir): os.mkdir(apparent_brightness_dir)
+        mask_dir = os.path.join(folder, "Masks")
+        if not os.path.isdir(mask_dir): os.mkdir(mask_dir)
+
     df_list = []
 
     # Process all files
     for file in tqdm(files):
-        avg_in_roi = numbers_and_brightness_analysis(
+        avg_in_roi, results_dict = numbers_and_brightness_analysis(
             file=file,
             analysis=analysis,
             erode=erode,
@@ -340,10 +388,37 @@ def numbers_and_brightness_batch(
             flow_threshold=flow_threshold,
             cellprob_threshold=cellprob_threshold,
             model=model,
-            bleach_corr=bleach_corr
+            bleach_corr=bleach_corr,
+            use_existing_mask=use_existing_mask
         )
         df_list.append(avg_in_roi)
-    
+
+        if create_overviews:
+            if "Apparent brightness" in results_dict.keys():
+                # Save apparent brightness
+                plt.imshow(results_dict["Apparent brightness"], cmap='plasma')
+                plt.axis('off')
+                plt.colorbar()
+                name = f"Apparent brightness - {results_dict["Filename"]}"
+                plt.title(name)
+                plt.savefig(os.path.join(apparent_brightness_dir, f"{name}.png"))
+                plt.close()
+
+            
+            if "Mask" in results_dict.keys():
+                # Save segmentation
+                from cellpose import utils
+                plt.imshow(results_dict["Intensity"], cmap='gray')
+                outlines = utils.outlines_list(results_dict["Mask"])
+                for o in outlines:
+                    plt.plot(o[:,0], o[:,1], color='r')
+                plt.axis('off')
+                plt.colorbar()
+                name = f"Segmentation - {results_dict["Filename"]}"
+                plt.title(name)
+                plt.savefig(os.path.join(mask_dir, f"{name}.png"))
+                plt.close()
+
     # If analysis was turned on, the analysis function will have returned average values in roi
     # Here they are combined in a single dataframe
     if analysis:
