@@ -1,13 +1,11 @@
 ---
 ---
-
 <!DOCTYPE html>
 <html lang="{{ site.lang | default: "en-US" }}">
   <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
 {% seo %}
     <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | relative_url }}">
     <style>
@@ -52,6 +50,10 @@
       .sidebar {
         width: 200px;
         padding: 20px;
+        position: sticky;
+        top: 70px;
+        height: fit-content;
+        align-self: flex-start;
       }
       .content {
         flex: 1;
@@ -78,7 +80,6 @@
     </div>
   </body>
 </html>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS_HTML"></script>
 <script type="text/x-mathjax-config">
 MathJax.Hub.Config({
@@ -92,23 +93,19 @@ MathJax.Hub.Config({
   displayIndent: "0em"
 });
 </script>
-
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const codeBlocks = document.querySelectorAll('pre > code');
     
     codeBlocks.forEach((codeBlock) => {
-      // Create the copy button
       const copyButton = document.createElement('button');
       copyButton.className = 'copy-button';
       copyButton.textContent = 'Copy';
       
-      // Make the pre position relative without adding padding
       const pre = codeBlock.parentNode;
       pre.classList.add('code-container');
-      pre.appendChild(copyButton); // Add as child, not before code
+      pre.appendChild(copyButton);
       
-      // Add click event
       copyButton.addEventListener('click', () => {
         const code = codeBlock.textContent;
         
@@ -134,7 +131,6 @@ MathJax.Hub.Config({
   <style>
   .code-container {
     position: relative;
-    /* No padding-top needed */
   }
   
   .copy-button {
@@ -147,11 +143,11 @@ MathJax.Hub.Config({
     border: 1px solid #ccc;
     border-radius: 4px;
     cursor: pointer;
-    opacity: 0.5; /* Make it slightly transparent */
+    opacity: 0.5;
   }
   
   .copy-button:hover {
     background-color: #e1e1e1;
-    opacity: 1; /* Full opacity on hover */
+    opacity: 1;
   }
   </style>
