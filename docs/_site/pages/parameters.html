@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
+    <link rel="icon" href="/Numbers-and-brightness/assets/images/nb_icon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/Numbers-and-brightness/assets/images/nb_icon.ico" type="image/x-icon">
 <!-- Begin Jekyll SEO tag v2.8.0 -->
 <title>Parameters | Numbers and Brightness</title>
 <meta name="generator" content="Jekyll v3.10.0" />
@@ -65,6 +66,10 @@
       .sidebar {
         width: 200px;
         padding: 20px;
+        position: sticky;
+        top: 70px; /* Positioned below the header */
+        height: fit-content;
+        align-self: flex-start;
       }
       .content {
         flex: 1;
@@ -164,7 +169,7 @@
 <h5 id="erode">Erode</h5>
 <p>Remove a certain number of pixels from the edge of the segmentation. Intended to exclude edge artefacts caused by cell movement from the final results.</p>
 
-<p><img src="../assets/images/eroded_mask.png" alt="" /></p>
+<p><img src="/Numbers-and-brightness/assets/images/eroded_mask.png" alt="" /></p>
 
 <h4 id="bleach-correction">Bleach correction</h4>
 <p>Perform simple bleach correction using linear fitting. For more information, see <a href="bleach_correction.html">bleach correction</a>.</p>
@@ -175,13 +180,12 @@
 <h4 id="create-overview">Create overview</h4>
 <p>Create overview folders containing segmentation and brightness results. Can be used to get a quick look at the analysis results of a batch.</p>
 
-<p><img src="../assets/images/masks.png" alt="" /></p>
+<p><img src="/Numbers-and-brightness/assets/images/masks.png" alt="" /></p>
 
       </div>
     </div>
   </body>
 </html>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS_HTML"></script>
 <script type="text/x-mathjax-config">
 MathJax.Hub.Config({
@@ -195,23 +199,19 @@ MathJax.Hub.Config({
   displayIndent: "0em"
 });
 </script>
-
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const codeBlocks = document.querySelectorAll('pre > code');
     
     codeBlocks.forEach((codeBlock) => {
-      // Create the copy button
       const copyButton = document.createElement('button');
       copyButton.className = 'copy-button';
       copyButton.textContent = 'Copy';
       
-      // Make the pre position relative without adding padding
       const pre = codeBlock.parentNode;
       pre.classList.add('code-container');
-      pre.appendChild(copyButton); // Add as child, not before code
+      pre.appendChild(copyButton);
       
-      // Add click event
       copyButton.addEventListener('click', () => {
         const code = codeBlock.textContent;
         
@@ -237,7 +237,6 @@ MathJax.Hub.Config({
   <style>
   .code-container {
     position: relative;
-    /* No padding-top needed */
   }
   
   .copy-button {
@@ -250,11 +249,11 @@ MathJax.Hub.Config({
     border: 1px solid #ccc;
     border-radius: 4px;
     cursor: pointer;
-    opacity: 0.5; /* Make it slightly transparent */
+    opacity: 0.5;
   }
   
   .copy-button:hover {
     background-color: #e1e1e1;
-    opacity: 1; /* Full opacity on hover */
+    opacity: 1;
   }
   </style>

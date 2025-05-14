@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
+    <link rel="icon" href="/Numbers-and-brightness/assets/images/nb_icon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="/Numbers-and-brightness/assets/images/nb_icon.ico" type="image/x-icon">
 <!-- Begin Jekyll SEO tag v2.8.0 -->
 <title>Interactive data inspection | Numbers and Brightness</title>
 <meta name="generator" content="Jekyll v3.10.0" />
@@ -65,6 +66,10 @@
       .sidebar {
         width: 200px;
         padding: 20px;
+        position: sticky;
+        top: 70px; /* Positioned below the header */
+        height: fit-content;
+        align-self: flex-start;
       }
       .content {
         flex: 1;
@@ -151,26 +156,25 @@
 
 <p>In the menu bar, navigate to <em>Tools&gt;Brightness - Intensity</em>.</p>
 
-<p><img src="../assets/images/select_folder.png" alt="" /></p>
+<p><img src="/Numbers-and-brightness/assets/images/select_folder.png" alt="" /></p>
 
 <p>Then press <strong>Select folder</strong> and open the desired outputfolder generated a previous analysis, a new window should open:</p>
 
-<p><img src="../assets/images/brightness_intensity_window.png" alt="" /></p>
+<p><img src="/Numbers-and-brightness/assets/images/brightness_intensity_window.png" alt="" /></p>
 
 <p>This window shows the apparent brightness in the ROI against the average intensity on a scatter plot, along with the ROI overlayed on the apparant brightness and intensity images.
 In the scatter plot, it is possible to select a rectangle to inspect which pixels on the image belong to which dot on the plot.</p>
 
-<p><img src="../assets/images/brightness_intensity_window_rectangle.png" alt="" /></p>
+<p><img src="/Numbers-and-brightness/assets/images/brightness_intensity_window_rectangle.png" alt="" /></p>
 
 <p>On the images, it is possible to select a specific region using a lasso selector to inspect where certain pixels are located inside the scatter plot.</p>
 
-<p><img src="../assets/images/brightness_intensity_window_lasso.png" alt="" /></p>
+<p><img src="/Numbers-and-brightness/assets/images/brightness_intensity_window_lasso.png" alt="" /></p>
 
       </div>
     </div>
   </body>
 </html>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS_HTML"></script>
 <script type="text/x-mathjax-config">
 MathJax.Hub.Config({
@@ -184,23 +188,19 @@ MathJax.Hub.Config({
   displayIndent: "0em"
 });
 </script>
-
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     const codeBlocks = document.querySelectorAll('pre > code');
     
     codeBlocks.forEach((codeBlock) => {
-      // Create the copy button
       const copyButton = document.createElement('button');
       copyButton.className = 'copy-button';
       copyButton.textContent = 'Copy';
       
-      // Make the pre position relative without adding padding
       const pre = codeBlock.parentNode;
       pre.classList.add('code-container');
-      pre.appendChild(copyButton); // Add as child, not before code
+      pre.appendChild(copyButton);
       
-      // Add click event
       copyButton.addEventListener('click', () => {
         const code = codeBlock.textContent;
         
@@ -226,7 +226,6 @@ MathJax.Hub.Config({
   <style>
   .code-container {
     position: relative;
-    /* No padding-top needed */
   }
   
   .copy-button {
@@ -239,11 +238,11 @@ MathJax.Hub.Config({
     border: 1px solid #ccc;
     border-radius: 4px;
     cursor: pointer;
-    opacity: 0.5; /* Make it slightly transparent */
+    opacity: 0.5;
   }
   
   .copy-button:hover {
     background-color: #e1e1e1;
-    opacity: 1; /* Full opacity on hover */
+    opacity: 1;
   }
   </style>

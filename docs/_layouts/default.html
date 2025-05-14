@@ -6,6 +6,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="{{ '/assets/images/nb_icon.ico' | relative_url }}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ '/assets/images/nb_icon.ico' | relative_url }}" type="image/x-icon">
 {% seo %}
     <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | relative_url }}">
     <style>
@@ -51,7 +53,7 @@
         width: 200px;
         padding: 20px;
         position: sticky;
-        top: 70px;
+        top: 70px; /* Positioned below the header */
         height: fit-content;
         align-self: flex-start;
       }
