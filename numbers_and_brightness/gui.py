@@ -203,6 +203,11 @@ class NumbersAndBrightnessApp(QMainWindow):
 
         # About
         file_menu = menu_bar.addMenu("About")
+
+        github_action = QAction("User guide", self)
+        github_action.triggered.connect(self.open_documentation)
+        file_menu.addAction(github_action)
+
         github_action = QAction("GitHub", self)
         github_action.triggered.connect(self.open_github)
         file_menu.addAction(github_action)
@@ -230,6 +235,11 @@ class NumbersAndBrightnessApp(QMainWindow):
     @pyqtSlot()
     def open_github(self):
         url = QUrl("https://github.com/JvB22/Numbers-and-brightness")
+        QDesktopServices.openUrl(url)
+
+    @pyqtSlot()
+    def open_documentation(self):
+        url = QUrl("https://jvb22.github.io/Numbers-and-brightness/")
         QDesktopServices.openUrl(url)
 
     @pyqtSlot()
