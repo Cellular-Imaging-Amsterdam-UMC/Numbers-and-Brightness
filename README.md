@@ -3,6 +3,8 @@ Numbers and brightness analysis for microscopic image analysis with automatic se
 
 [For information about usage and functionality, please see the documentation.](https://jvb22.github.io/Numbers-and-brightness/)
 
+<img src="./assets/images/documentation.png" width="50%" height="50%">
+
 ## Installation
 Numbers and brightness is available on PyPi and can be installed as follows:
 ```shell
