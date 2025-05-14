@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Segmentation correction | Numbers and Brightness</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Segmentation correction" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="User guide for Numbers and Brightness analysis" />
+<meta property="og:description" content="User guide for Numbers and Brightness analysis" />
+<link rel="canonical" href="http://localhost:4000/Numbers-and-brightness/pages/segmentation_correction.html" />
+<meta property="og:url" content="http://localhost:4000/Numbers-and-brightness/pages/segmentation_correction.html" />
+<meta property="og:site_name" content="Numbers and Brightness" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Segmentation correction" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"User guide for Numbers and Brightness analysis","headline":"Segmentation correction","url":"http://localhost:4000/Numbers-and-brightness/pages/segmentation_correction.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/Numbers-and-brightness/assets/css/style.css?v=">
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+      }
+      body > * {
+        margin-top: 0;
+      }
+      header {
+        position: sticky;
+        top: 0;
+        width: 100%;
+        z-index: 100;
+        background: linear-gradient(to right, #423452, #3b537c);
+        padding: 15px 20px;
+        border-bottom: 1px solid #333;
+        border-radius: 0;
+        box-sizing: border-box;
+        margin: 0;
+      }
+      .header-content {
+        width: 100%;
+        text-align: left;
+        padding: 0;
+      }
+      .site-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: white;
+        margin: 0;
+        padding: 0;
+      }
+      .main-content {
+        display: flex;
+        flex: 1;
+      }
+      .sidebar {
+        width: 200px;
+        padding: 20px;
+      }
+      .content {
+        flex: 1;
+        padding: 20px;
+        max-width: 1000px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-content">
+        <div class="site-title">Numbers and Brightness</div>
+      </div>
+    </header>
+    
+    <div class="main-content">
+      <div class="sidebar">
+        <aside class="sidebar-nav" style="padding: 20px; background-color: #cacaca; border-radius: 5px; border: 1px solid #eee;">
+    <h3 style="margin-top: 0; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Contents</h3>
+    <ul style="list-style-type: none; padding-left: 0; margin-top: 15px;">
+      
+      <li style="margin-bottom: 10px;">
+        <a href="/Numbers-and-brightness/" style="text-decoration: none; color: #000; font-weight: bold;">Home</a>
+      </li>
+  
+      
+      
+        
+          <li style="margin-bottom: 10px;">
+            <a href="/Numbers-and-brightness/pages/installation.html" style="text-decoration: none; color: #0366d6;">Installation</a>
+          </li>
+        
+      
+        
+          <li style="margin-bottom: 10px;">
+            <a href="/Numbers-and-brightness/pages/calculations.html" style="text-decoration: none; color: #0366d6;">Calculations</a>
+          </li>
+        
+      
+        
+          <li style="margin-bottom: 10px;">
+            <a href="/Numbers-and-brightness/pages/usage.html" style="text-decoration: none; color: #0366d6;">Usage</a>
+          </li>
+        
+      
+        
+          <li style="margin-bottom: 10px;">
+            <a href="/Numbers-and-brightness/pages/output.html" style="text-decoration: none; color: #0366d6;">Output</a>
+          </li>
+        
+      
+        
+          <li style="margin-bottom: 10px;">
+            <a href="/Numbers-and-brightness/pages/parameters.html" style="text-decoration: none; color: #0366d6;">Parameters</a>
+          </li>
+        
+      
+        
+          <li style="margin-bottom: 10px;">
+            <a href="/Numbers-and-brightness/pages/bleach_correction.html" style="text-decoration: none; color: #0366d6;">Bleach correction</a>
+          </li>
+        
+      
+        
+          <li style="margin-bottom: 10px;">
+            <a href="/Numbers-and-brightness/pages/segmentation_correction.html" style="text-decoration: none; color: #0366d6;">Segmentation correction</a>
+          </li>
+        
+      
+        
+          <li style="margin-bottom: 10px;">
+            <a href="/Numbers-and-brightness/pages/interactive_data_inspection.html" style="text-decoration: none; color: #0366d6;">Interactive data inspection</a>
+          </li>
+        
+      
+    </ul>
+  </aside>
+  
+      </div>
+      
+      <div class="content">
+        <h1 id="segmentation-correction">Segmentation correction</h1>
+<p>The segmentation might not always be 100% accurate. The application contains functionality to manually correct segmentations.</p>
+
+<p>First, in the main window menubar, selects <em>tools&gt;cellpose</em>. The application will start the cellpose GUI. This might take a few seconds.<br /></p>
+
+<p>In cellpose, select <em>File&gt;Load Image</em> and navigate to the outputfolder of the image you want to correct. Then open the file called <em>segmentation_image.tif</em>. Cellpose should automatically load the existing segmentation.<br /></p>
+
+<p><img src="/Numbers-and-brightness/assets/images/cellpose_segmentation_correction.png" alt="" /></p>
+
+<p>In cellpose, you can use Ctrl+LMB (Left Mouse Button) on a cell to remove the segmentation. A new segmentation can be created by pressing RMB (Right Mouse Button) once and drawing a new ROI.</p>
+
+<p><img src="/Numbers-and-brightness/assets/images/cellpose_corrected_segmentation.png" alt="" /></p>
+
+<p>Cellpose should automatically save these segmentations, the can be validated using the command prompt. If this is not happening, you can manually save the file using <em>File&gt;Save masks and image (as *_seg.npy)</em></p>
+
+<p>Now it is possible to process the image again, but this time turning on the parameter <strong>Use existing segmentation</strong>. The application will now use the corrected segmentation.<br />
+Running the analysis without this parameter, and <strong>Segment</strong> turned on will override the custom segmentation.</p>
+
+<p>Lastly, the cellpose GUI is a nice place to play around with the cellpose parameters cuch as <strong>flow_threshold</strong>, <strong>cellprob_threshold</strong> and <strong>diameter</strong> to see how they affect the segmentation.</p>
+
+      </div>
+    </div>
+  </body>
+</html>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS_HTML"></script>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$','$$'], ['\\[','\\]']],
+    processEscapes: true
+  },
+  TeX: { equationNumbers: { autoNumber: "AMS" } },
+  displayAlign: "left",
+  displayIndent: "0em"
+});
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const codeBlocks = document.querySelectorAll('pre > code');
+    
+    codeBlocks.forEach((codeBlock) => {
+      // Create the copy button
+      const copyButton = document.createElement('button');
+      copyButton.className = 'copy-button';
+      copyButton.textContent = 'Copy';
+      
+      // Make the pre position relative without adding padding
+      const pre = codeBlock.parentNode;
+      pre.classList.add('code-container');
+      pre.appendChild(copyButton); // Add as child, not before code
+      
+      // Add click event
+      copyButton.addEventListener('click', () => {
+        const code = codeBlock.textContent;
+        
+        navigator.clipboard.writeText(code)
+          .then(() => {
+            copyButton.textContent = 'Copied!';
+            setTimeout(() => {
+              copyButton.textContent = 'Copy';
+            }, 2000);
+          })
+          .catch(err => {
+            console.error('Failed to copy: ', err);
+            copyButton.textContent = 'Failed';
+            setTimeout(() => {
+              copyButton.textContent = 'Copy';
+            }, 2000);
+          });
+      });
+    });
+  });
+  </script>
+  
+  <style>
+  .code-container {
+    position: relative;
+    /* No padding-top needed */
+  }
+  
+  .copy-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    padding: 3px 8px;
+    font-size: 12px;
+    background-color: #f1f1f1;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0.5; /* Make it slightly transparent */
+  }
+  
+  .copy-button:hover {
+    background-color: #e1e1e1;
+    opacity: 1; /* Full opacity on hover */
+  }
+  </style>

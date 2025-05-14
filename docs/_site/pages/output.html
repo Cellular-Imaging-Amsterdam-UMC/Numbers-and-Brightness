@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Output | Numbers and Brightness</title>
+<meta name="generator" content="Jekyll v3.10.0" />
+<meta property="og:title" content="Output" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="User guide for Numbers and Brightness analysis" />
+<meta property="og:description" content="User guide for Numbers and Brightness analysis" />
+<link rel="canonical" href="http://localhost:4000/Numbers-and-brightness/pages/output.html" />
+<meta property="og:url" content="http://localhost:4000/Numbers-and-brightness/pages/output.html" />
+<meta property="og:site_name" content="Numbers and Brightness" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Output" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebPage","description":"User guide for Numbers and Brightness analysis","headline":"Output","url":"http://localhost:4000/Numbers-and-brightness/pages/output.html"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <link rel="stylesheet" href="/Numbers-and-brightness/assets/css/style.css?v=">
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+      }
+      body > * {
+        margin-top: 0;
+      }
+      header {
+        position: sticky;
+        top: 0;
+        width: 100%;
+        z-index: 100;
+        background: linear-gradient(to right, #423452, #3b537c);
+        padding: 15px 20px;
+        border-bottom: 1px solid #333;
+        border-radius: 0;
+        box-sizing: border-box;
+        margin: 0;
+      }
+      .header-content {
+        width: 100%;
+        text-align: left;
+        padding: 0;
+      }
+      .site-title {
+        font-size: 24px;
+        font-weight: bold;
+        color: white;
+        margin: 0;
+        padding: 0;
+      }
+      .main-content {
+        display: flex;
+        flex: 1;
+      }
+      .sidebar {
+        width: 200px;
+        padding: 20px;
+      }
+      .content {
+        flex: 1;
+        padding: 20px;
+        max-width: 1000px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-content">
+        <div class="site-title">Numbers and Brightness</div>
+      </div>
+    </header>
+    
+    <div class="main-content">
+      <div class="sidebar">
+        <aside class="sidebar-nav" style="padding: 20px; background-color: #cacaca; border-radius: 5px; border: 1px solid #eee;">
+    <h3 style="margin-top: 0; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Contents</h3>
+    <ul style="list-style-type: none; padding-left: 0; margin-top: 15px;">
+      
+      <li style="margin-bottom: 10px;">
+        <a href="/Numbers-and-brightness/" style="text-decoration: none; color: #000; font-weight: bold;">Home</a>
+      </li>
+  
+      
+      
+        
+          <li style="margin-bottom: 10px;">
+            <a href="/Numbers-and-brightness/pages/installation.html" style="text-decoration: none; color: #0366d6;">Installation</a>
+          </li>
+        
+      
+        
+          <li style="margin-bottom: 10px;">
+            <a href="/Numbers-and-brightness/pages/calculations.html" style="text-decoration: none; color: #0366d6;">Calculations</a>
+          </li>
+        
+      
+        
+          <li style="margin-bottom: 10px;">
+            <a href="/Numbers-and-brightness/pages/usage.html" style="text-decoration: none; color: #0366d6;">Usage</a>
+          </li>
+        
+      
+        
+          <li style="margin-bottom: 10px;">
+            <a href="/Numbers-and-brightness/pages/output.html" style="text-decoration: none; color: #0366d6;">Output</a>
+          </li>
+        
+      
+        
+          <li style="margin-bottom: 10px;">
+            <a href="/Numbers-and-brightness/pages/parameters.html" style="text-decoration: none; color: #0366d6;">Parameters</a>
+          </li>
+        
+      
+        
+          <li style="margin-bottom: 10px;">
+            <a href="/Numbers-and-brightness/pages/bleach_correction.html" style="text-decoration: none; color: #0366d6;">Bleach correction</a>
+          </li>
+        
+      
+        
+          <li style="margin-bottom: 10px;">
+            <a href="/Numbers-and-brightness/pages/segmentation_correction.html" style="text-decoration: none; color: #0366d6;">Segmentation correction</a>
+          </li>
+        
+      
+        
+          <li style="margin-bottom: 10px;">
+            <a href="/Numbers-and-brightness/pages/interactive_data_inspection.html" style="text-decoration: none; color: #0366d6;">Interactive data inspection</a>
+          </li>
+        
+      
+    </ul>
+  </aside>
+  
+      </div>
+      
+      <div class="content">
+        <h1 id="output">Output</h1>
+<p>For every processed image, the application generates an output folder containing to following files:</p>
+<ul>
+  <li>apparent_brightness.npy
+    <ul>
+      <li>File containing the apparant brightness values for the entire image. Npy files can be easily loaded into python.</li>
+    </ul>
+  </li>
+  <li>apparent_number.npy
+    <ul>
+      <li>File containing the apparant number values for the entire image. Npy files can be easily loaded into python.</li>
+    </ul>
+  </li>
+  <li>brightness.npy
+    <ul>
+      <li>File containing the brightness values for the entire image. Npy files can be easily loaded into python.</li>
+    </ul>
+  </li>
+  <li>number.npy
+    <ul>
+      <li>File containing the number values for the entire image. Npy files can be easily loaded into python.</li>
+    </ul>
+  </li>
+  <li>intensity.npy
+    <ul>
+      <li>File containing the intensity values for the entire image. Npy files can be easily loaded into python.</li>
+    </ul>
+  </li>
+  <li>variance.npy
+    <ul>
+      <li>File containing the variance values for the entire image. Npy files can be easily loaded into python.</li>
+    </ul>
+  </li>
+  <li>apparent_brightness.tif
+    <ul>
+      <li>File containing the apparant brightness values for the entire image.</li>
+    </ul>
+  </li>
+  <li>apparent_number.tif
+    <ul>
+      <li>File containing the apparant number values for the entire image.</li>
+    </ul>
+  </li>
+  <li>brightness.tif
+    <ul>
+      <li>File containing the brightness values for the entire image.</li>
+    </ul>
+  </li>
+  <li>number.tif
+    <ul>
+      <li>File containing the number values for the entire image.</li>
+    </ul>
+  </li>
+  <li>intensity.tif
+    <ul>
+      <li>File containing the intensity values for the entire image.</li>
+    </ul>
+  </li>
+  <li>variance.tif
+    <ul>
+      <li>File containing the variance values for the entire image.</li>
+    </ul>
+  </li>
+  <li>apparent_brightness.png
+    <ul>
+      <li>File containing a preview of the apparant brightness values for the entire image.</li>
+    </ul>
+  </li>
+  <li>apparent_number.png
+    <ul>
+      <li>File containing a preview of the apparant number values for the entire image.</li>
+    </ul>
+  </li>
+  <li>brightness.png
+    <ul>
+      <li>File containing a preview of the brightness values for the entire image.</li>
+    </ul>
+  </li>
+  <li>number.png
+    <ul>
+      <li>File containing a preview of the number values for the entire image.</li>
+    </ul>
+  </li>
+  <li>intensity.png
+    <ul>
+      <li>File containing a preview of the intensity values for the entire image.</li>
+    </ul>
+  </li>
+  <li>variance.png
+    <ul>
+      <li>File containing a preview of the variance values for the entire image.</li>
+    </ul>
+  </li>
+  <li>cellmask.png
+    <ul>
+      <li>Figure showing the segmentation used for the analysis</li>
+    </ul>
+  </li>
+  <li>eroded_mask.png
+    <ul>
+      <li>Figure showing the eroded mask.</li>
+    </ul>
+  </li>
+  <li>segmentation_image.tif
+    <ul>
+      <li>The image used for the segmentation model. The mean projection of all timepoints.</li>
+    </ul>
+  </li>
+  <li>segmentation_image_seg.npy
+    <ul>
+      <li>Raw results of the segmentation by cellpose.</li>
+    </ul>
+  </li>
+  <li>Bleach_correction.png
+    <ul>
+      <li>Results of the bleach correction</li>
+    </ul>
+  </li>
+  <li>brightness_x_intensity.png
+    <ul>
+      <li>Scatter plot showing apparent brightness vs intensity.</li>
+    </ul>
+  </li>
+  <li>brightness_intensity_values.csv
+    <ul>
+      <li>Csv file containing the values used for the scatter plot (apparent brightness and intensity values inside the ROI).</li>
+    </ul>
+  </li>
+  <li>average_values_in_roi.csv
+    <ul>
+      <li>The average apparent brightness, apparent number, brightness, number, intensity and variance values in the ROI.</li>
+    </ul>
+  </li>
+</ul>
+
+<p><strong>Batch processing</strong><br />
+When batchprocessing is turned on, an extra csv file is generated in the parent folder, containing the output values from multiple experiments:</p>
+
+<ul>
+  <li>Folder_average_values_in_roi.csv</li>
+</ul>
+
+<p><img src="../assets/images/folder_output.png" alt="" /></p>
+
+      </div>
+    </div>
+  </body>
+</html>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS_HTML"></script>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  tex2jax: {
+    inlineMath: [['$','$'], ['\\(','\\)']],
+    displayMath: [['$$','$$'], ['\\[','\\]']],
+    processEscapes: true
+  },
+  TeX: { equationNumbers: { autoNumber: "AMS" } },
+  displayAlign: "left",
+  displayIndent: "0em"
+});
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const codeBlocks = document.querySelectorAll('pre > code');
+    
+    codeBlocks.forEach((codeBlock) => {
+      // Create the copy button
+      const copyButton = document.createElement('button');
+      copyButton.className = 'copy-button';
+      copyButton.textContent = 'Copy';
+      
+      // Make the pre position relative without adding padding
+      const pre = codeBlock.parentNode;
+      pre.classList.add('code-container');
+      pre.appendChild(copyButton); // Add as child, not before code
+      
+      // Add click event
+      copyButton.addEventListener('click', () => {
+        const code = codeBlock.textContent;
+        
+        navigator.clipboard.writeText(code)
+          .then(() => {
+            copyButton.textContent = 'Copied!';
+            setTimeout(() => {
+              copyButton.textContent = 'Copy';
+            }, 2000);
+          })
+          .catch(err => {
+            console.error('Failed to copy: ', err);
+            copyButton.textContent = 'Failed';
+            setTimeout(() => {
+              copyButton.textContent = 'Copy';
+            }, 2000);
+          });
+      });
+    });
+  });
+  </script>
+  
+  <style>
+  .code-container {
+    position: relative;
+    /* No padding-top needed */
+  }
+  
+  .copy-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    padding: 3px 8px;
+    font-size: 12px;
+    background-color: #f1f1f1;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0.5; /* Make it slightly transparent */
+  }
+  
+  .copy-button:hover {
+    background-color: #e1e1e1;
+    opacity: 1; /* Full opacity on hover */
+  }
+  </style>
