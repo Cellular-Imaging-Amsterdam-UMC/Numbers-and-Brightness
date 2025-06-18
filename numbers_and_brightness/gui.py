@@ -100,7 +100,6 @@ class NumbersAndBrightnessApp(QMainWindow):
         segment_label = QLabel("Segment:")
         self.segment_input = QCheckBox()
         self.segment_input.setChecked(DEFAULT_SEGMENT)
-        self.segment_input.clicked.connect(self.handle_segment_state)
         main_layout.addWidget(segment_label, 3, 0)
         main_layout.addWidget(self.segment_input, 3, 1)
 
@@ -135,7 +134,6 @@ class NumbersAndBrightnessApp(QMainWindow):
         analysis_label = QLabel("Analysis:")
         self.analysis_input = QCheckBox()
         self.analysis_input.setChecked(DEFAULT_ANALYSIS)
-        self.analysis_input.clicked.connect(self.handle_segment_state)
         main_layout.addWidget(analysis_label, 5, 0)
         main_layout.addWidget(self.analysis_input, 5, 1)
 
@@ -143,7 +141,6 @@ class NumbersAndBrightnessApp(QMainWindow):
         erode_label = QLabel("Erode:")
         self.erode_input = QLineEdit()
         self.erode_input.setText(str(DEFAULT_ERODE))
-        self.erode_input.textChanged.connect(self.handle_segment_state)
         main_layout.addWidget(erode_label, 6, 0)
         main_layout.addWidget(self.erode_input, 6, 1)
 
@@ -151,7 +148,6 @@ class NumbersAndBrightnessApp(QMainWindow):
         bleach_corr_label = QLabel("Bleach correction:")
         self.bleach_corr_input = QCheckBox()
         self.bleach_corr_input.setChecked(DEFAULT_BLEACH_CORR)
-        self.bleach_corr_input.clicked.connect(self.handle_segment_state)
         main_layout.addWidget(bleach_corr_label, 7, 0)
         main_layout.addWidget(self.bleach_corr_input, 7, 1)
 
@@ -159,7 +155,6 @@ class NumbersAndBrightnessApp(QMainWindow):
         use_existing_label = QLabel("Use existing segmentation:")
         self.use_existing_input = QCheckBox()
         self.use_existing_input.setChecked(DEFAULT_USE_EXISTING_MASK)
-        self.use_existing_input.clicked.connect(self.handle_segment_state)
         main_layout.addWidget(use_existing_label, 8, 0)
         main_layout.addWidget(self.use_existing_input, 8, 1)
 
@@ -167,7 +162,6 @@ class NumbersAndBrightnessApp(QMainWindow):
         create_overview_label = QLabel("Create overview:")
         self.create_overview_input = QCheckBox()
         self.create_overview_input.setChecked(DEFAULT_CREATE_OVERVIEW)
-        self.create_overview_input.clicked.connect(self.handle_segment_state)
         main_layout.addWidget(create_overview_label, 9, 0)
         main_layout.addWidget(self.create_overview_input, 9, 1)
 
@@ -262,17 +256,6 @@ class NumbersAndBrightnessApp(QMainWindow):
         """Helper method to enable/disable all buttons"""
         for button in chain(self.select_buttons, self.process_buttons):
             button.setEnabled(enabled)
-
-    def handle_segment_state(self, checked):
-        """Automatically check 'segment' when required"""     
-        if (
-            self.analysis_input.isChecked() or 
-            self.bleach_corr_input.isChecked() or 
-            int(self.erode_input.text()) > 0
-        ):
-            self.segment_input.blockSignals(True)
-            self.segment_input.setChecked(True)
-            self.segment_input.blockSignals(False)
 
     """File analysis functions"""
     def process_file_call(self):

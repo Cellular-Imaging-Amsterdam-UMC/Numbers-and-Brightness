@@ -357,7 +357,7 @@ def numbers_and_brightness_batch(
     folder = Path(folder)
 
     if analysis: segment = True     # Segmentation is needed for analysis
-    if bleach_corr: segment = True # Segmentation is needed for bleaching correction
+    if bleach_corr: segment = True  # Segmentation is needed for bleaching correction
     if erode>0: segment = True      # Cannot erode a mask without having a mask    
 
     # Collect all tiff files in folder
