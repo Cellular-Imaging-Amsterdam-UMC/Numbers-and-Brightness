@@ -94,7 +94,7 @@ def _erode_mask(img: np.ndarray, mask: np.ndarray, pixels: int, outputdir: str) 
         cell_mask = mask==cell
         cell_mask_uint8 = cell_mask.astype(np.uint8)
         shrunk_mask = cv2.erode(cell_mask_uint8, kernel)
-        shrunk_mask = shrunk_mask.astype(np.bool)
+        shrunk_mask = shrunk_mask.astype(bool)
 
         outlines = utils.outlines_list(shrunk_mask)
         for o in outlines:

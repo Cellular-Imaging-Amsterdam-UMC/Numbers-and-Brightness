@@ -228,12 +228,12 @@ class NumbersAndBrightnessApp(QMainWindow):
 
     @pyqtSlot()
     def open_github(self):
-        url = QUrl("https://github.com/JvB22/Numbers-and-brightness")
+        url = QUrl("https://github.com/Cellular-Imaging-Amsterdam-UMC/Numbers-and-Brightness")
         QDesktopServices.openUrl(url)
 
     @pyqtSlot()
     def open_documentation(self):
-        url = QUrl("https://jvb22.github.io/Numbers-and-brightness/")
+        url = QUrl("https://cellular-imaging-amsterdam-umc.github.io/Numbers-and-Brightness/")
         QDesktopServices.openUrl(url)
 
     @pyqtSlot()

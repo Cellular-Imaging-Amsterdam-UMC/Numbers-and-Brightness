@@ -20,11 +20,11 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Operating System :: OS Independent",
 ]
-requires-python = ">=3.8"   # To get importlib.metadata working correctly
+requires-python = ">=3.8, <3.13"   # python >3.8 is required to get importlib.metadata working correctly, python <3.13 is required to work correctly with numpy <2.1.0 which is required for cellpose
 dependencies = [
     "cellpose[gui]==3.1.1.2",    # Last version before Cellpose-SAM
+    "numpy==2.0.2",
     "matplotlib>=3.10.1",
-    "numpy>=2.0.2",
     "opencv-python>=4.11.0.86",
     "scipy>=1.15.2",
     "tifffile>=2025.3.30",

@@ -130,7 +130,7 @@ class plot_widget(QWidget):
         self.rect_coords = {'xmin': 0, 'xmax': 0, 'ymin': 0, 'ymax': 0}
         self.selected_background = list(self.background_options.keys())[0]
         self.active_figure = False
-        self.selected_mask = np.zeros_like(self.brightness).astype(np.bool)
+        self.selected_mask = np.zeros_like(self.brightness).astype(bool)
         
         # Create figures
         self.create_scatter_figure()
@@ -199,10 +199,10 @@ class plot_widget(QWidget):
         self.intensity_max_input.setText(f"{self.rect_coords['xmax']:.3f}")
 
         # Only redraw scatter if we just came from the lasso selection (so if mask is not empty)
-        redraw_scatter = not np.array_equal(self.selected_mask.astype(np.bool), np.zeros_like(self.brightness).astype(np.bool))
+        redraw_scatter = not np.array_equal(self.selected_mask.astype(bool), np.zeros_like(self.brightness).astype(bool))
 
         # Remove selected dots
-        self.selected_mask = np.zeros_like(self.brightness).astype(np.bool)
+        self.selected_mask = np.zeros_like(self.brightness).astype(bool)
 
         # update image
         self.create_image_figure()
